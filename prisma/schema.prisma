@@ -9,66 +9,534 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  extensions = ["postgis"]
 }
 
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  name      String?
+  phone     String?  @unique
+  
+  // Basic Information
+  firstName String
+  lastName  String
+  displayName String?
+  avatar    String?
+  language  String   @default("en") // en, ta, hi (English, Tamil, Hindi)
+  timezone  String   @default("Asia/Kolkata")
+  
+  // User Classification
+  userType  String   @default("pedestrian") // pedestrian, two_wheeler, cyclist, public_transport
+  role      String   @default("user") // user, premium, admin, trusted_reporter, civic_partner, super_admin
+  
+  // Authentication & Security (Enhanced)
+  passwordHash         String
+  saltRounds          Int      @default(12)
+  emailVerified       Boolean  @default(false)
+  emailVerifiedAt     DateTime?
+  phoneVerified       Boolean  @default(false)
+  phoneVerifiedAt     DateTime?
+  twoFactorEnabled    Boolean  @default(false)
+  twoFactorSecret     String?
+  backupCodes         String?  // JSON array of backup codes
+  passwordResetToken  String?
+  passwordResetExpires DateTime?
+  emailChangeToken    String?  // For email change verification
+  emailChangeExpires  DateTime?
+  lastPasswordChange  DateTime @default(now())
+  passwordHistory     String?  // JSON array of last 5 password hashes
+  lastLoginAt         DateTime?
+  loginAttempts       Int      @default(0)
+  lockedUntil         DateTime?
+  sessionTokens       String?  // JSON array of active session tokens
+  
+  // DPDP Act 2023 Compliance (Enhanced)
+  dataProcessingConsent    Boolean  @default(false)
+  consentVersion          String   @default("1.0")
+  consentDate             DateTime?
+  dataRetentionExpiry     DateTime?
+  locationSharingLevel    String   @default("coarse") // precise, coarse, city_only
+  crowdsourcingParticipation Boolean @default(true)
+  personalizedRecommendations Boolean @default(true)
+  analyticsConsent        Boolean  @default(false)
+  marketingConsent        Boolean  @default(false)
+  thirdPartySharing       Boolean  @default(false)
+  rightToPortability      Boolean  @default(true)
+  rightToErasure          Boolean  @default(true)
+  
+  // Enhanced Profile
+  dateOfBirth DateTime?
+  gender      String?   // male, female, other, prefer_not_to_say
+  city        String?
+  state       String?
+  country     String   @default("India")
+  pincode     String?
+  
+  // SafeRoute Specific Profile
+  riskTolerance    Int     @default(50) // 0-100 scale
+  timePreference   String  @default("safety_first") // safety_first, balanced, time_first
+  accessibilityNeeds String? // JSON string of accessibility requirements
+  medicalInfo      String? // JSON string of medical information (encrypted)
+  
+  // Subscription & Billing
+  subscriptionPlan   String   @default("free") // free, premium, enterprise
+  subscriptionStatus String   @default("active") // active, cancelled, expired, trial
+  subscriptionStart  DateTime?
+  subscriptionEnd    DateTime?
+  billingAddress     String? // JSON string of billing address
+  paymentMethod      String? // JSON string of payment method info (tokenized)
+  
+  // Analytics & Metrics
+  totalRoutes         Int      @default(0)
+  averageSafetyScore  Float?   
+  emergencyAlerts     Int      @default(0)
+  dataContributions   Int      @default(0)
+  appUsageHours      Float    @default(0)
+  lastActiveAt       DateTime @default(now())
+  
+  // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // SafeGuard Navigator relations
-  safetyPreferences SafetyPreference?
+  // Relations
+  privacySettings   PrivacySettings?
+  deviceInfo        DeviceInfo[]
+  emergencyContacts EmergencyContact[]
+  reputationScore   ReputationScore?
+  auditLogs         AuditLog[]
   routes            Route[]
   emergencyAlerts   EmergencyAlert[]
   incidentReports   IncidentReport[]
   posts             Post[]
+  userSessions      UserSession[]
+  dataExports       DataExport[]
+  consentHistory    ConsentHistory[]
+  achievements      Achievement[]
+  safetyBadges      SafetyBadge[]
+  
+  @@index([email])
+  @@index([phone])
+  @@index([role])
+  @@index([userType])
+  @@index([lastActiveAt])
+  @@index([subscriptionStatus])
+  @@map("users")
 }
 
-model SafetyPreference {
-  id               String   @id @default(cuid())
-  userId           String   @unique
-  riskTolerance    Int      @default(50) // 0-100 scale
-  preferredFactors String // JSON string of factors
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+// Enhanced User Session Management
+model UserSession {
+  id           String   @id @default(cuid())
+  userId       String
+  sessionToken String   @unique
+  refreshToken String   @unique
+  deviceId     String?
+  ipAddress    String?
+  userAgent    String?
+  isActive     Boolean  @default(true)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  lastUsedAt   DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([sessionToken])
+  @@index([refreshToken])
+  @@index([expiresAt])
+  @@map("user_sessions")
+}
+
+// DPDP Act 2023 Compliance Models
+model ConsentHistory {
+  id              String   @id @default(cuid())
+  userId          String
+  consentType     String   // data_processing, location_sharing, analytics, marketing
+  consentVersion  String
+  granted         Boolean
+  grantedAt       DateTime
+  revokedAt       DateTime?
+  ipAddress       String?
+  userAgent       String?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([consentType])
+  @@index([grantedAt])
+  @@map("consent_history")
+}
+
+model DataExport {
+  id           String   @id @default(cuid())
+  userId       String
+  requestType  String   // full_export, specific_data, account_deletion
+  status       String   @default("pending") // pending, processing, completed, failed
+  dataTypes    String   // JSON array of requested data types
+  fileUrl      String?
+  expiresAt    DateTime?
+  requestedAt  DateTime @default(now())
+  completedAt  DateTime?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([status])
+  @@index([requestedAt])
+  @@map("data_exports")
+}
+
+// Gamification & Community
+model Achievement {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // safety_explorer, trusted_reporter, emergency_responder
+  name        String
+  description String
+  iconUrl     String?
+  points      Int      @default(0)
+  unlockedAt  DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([type])
+  @@map("achievements")
+}
+
+model SafetyBadge {
+  id          String   @id @default(cuid())
+  userId      String
+  badgeType   String   // safety_champion, community_guardian, incident_responder
+  level       Int      @default(1) // 1-5 levels
+  name        String
+  description String
+  iconUrl     String?
+  earnedAt    DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([badgeType])
+  @@map("safety_badges")
+}
+
+model PrivacySettings {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  dataProcessingConsent Boolean  @default(false)
+  locationSharingLevel  String   @default("coarse")
+  crowdsourcingParticipation Boolean @default(true)
+  personalizedRecommendations Boolean @default(true)
+  analyticsConsent      Boolean  @default(false)
+  marketingConsent      Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model DeviceInfo {
+  id                String   @id @default(cuid())
+  userId            String
+  deviceId          String   @unique
+  deviceType        String   // mobile, tablet, desktop
+  osName            String?
+  osVersion         String?
+  appVersion        String?
+  hasAccelerometer  Boolean  @default(false)
+  hasCamera         Boolean  @default(false)
+  offlineCapable    Boolean  @default(false)
+  networkQuality    String   @default("medium") // high, medium, low
+  lastSeenAt        DateTime @default(now())
+  createdAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model EmergencyContact {
+  id           String   @id @default(cuid())
+  userId       String
+  name         String
+  phone        String
+  email        String?
+  relationship String   // family, friend, colleague, etc.
+  priority     Int      @default(1) // 1 is highest priority
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ReputationScore {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  trustLevel        Float    @default(0.5) // 0-1 Wilson score based
+  reportsSubmitted  Int      @default(0)
+  reportsVerified   Int      @default(0)
+  reportsRejected   Int      @default(0)
+  communityStanding String   @default("new") // new, trusted, verified, expert
+  lastCalculatedAt  DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String   // login, logout, profile_update, data_access, etc.
+  resource   String?  // what was accessed/modified
+  ipAddress  String?
+  userAgent  String?
+  metadata   String?  // JSON string of additional data
+  timestamp  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+}
+
+// Enterprise SafetyScore with Multi-Factor Algorithm
 model SafetyScore {
-  id        String   @id @default(cuid())
-  latitude  Float
-  longitude Float
-  score     Int // 0-100 scale
-  factors   String // JSON string of safety factors
-  timestamp DateTime @default(now())
+  id                String   @id @default(cuid())
+  latitude          Float
+  longitude         Float
+  geohash           String   // For spatial indexing
+  
+  // Multi-factor scoring (SafetyScore(e) = wL * L(e) + wF * F(e) + wH * H(e) + wP * P(e))
+  overallScore      Int      // 0-100 scale (final calculated score)
+  confidence        Float    @default(0.5) // 0-1 confidence level
+  
+  // Core Safety Factors with Weights
+  lightingScore     Int      @default(50) // L(e) component (wL = 0.30)
+  lightingWeight    Float    @default(0.30)
+  lightingData      String?  // JSON string of lighting assessment data
+  
+  footfallScore     Int      @default(50) // F(e) component (wF = 0.25)
+  footfallWeight    Float    @default(0.25)
+  footfallData      String?  // JSON string of activity assessment data
+  
+  hazardScore       Int      @default(50) // H(e) component (wH = 0.20) - inverted
+  hazardWeight      Float    @default(0.20)
+  hazardData        String?  // JSON string of hazard assessment data
+  
+  proximityScore    Int      @default(50) // P(e) component (wP = 0.25)
+  proximityWeight   Float    @default(0.25)
+  proximityData     String?  // JSON string of proximity to help data
+  
+  // Contextual Enhancement Factors
+  timeOfDay         String   @default("day") // morning, afternoon, evening, night
+  weatherCondition  String?  // clear, rain, fog, storm
+  userType          String   @default("pedestrian") // pedestrian, two_wheeler, cyclist
+  seasonalFactor    Float    @default(1.0) // Seasonal adjustment multiplier
+  
+  // Data Sources Attribution
+  viirsBrightness   Float?   // VIIRS satellite brightness data
+  municipalData     String?  // JSON string of municipal infrastructure data
+  osmData          String?  // JSON string of OpenStreetMap derived data
+  mapplsData       String?  // JSON string of Mappls SDK data
+  crowdsourcedData String?  // JSON string of crowdsourced reports
+  weatherData      String?  // JSON string of weather impact data
+  sources          String   // JSON string of all data source attribution
+  
+  // AI/ML Predictions
+  aiPredictions    String?  // JSON string of AI predictions
+  riskForecast     Float?   // 24-hour incident probability (0-1)
+  anomalyScore     Float?   // Anomaly detection score (0-1)
+  incidentProbability Float? // Real-time incident probability
+  
+  // Data Quality & Freshness
+  dataQuality      String   @default("medium") // low, medium, high, verified
+  lastUpdated      DateTime @default(now())
+  expiresAt        DateTime? // For data freshness
+  updateFrequency  String   @default("daily") // realtime, hourly, daily, weekly
+  
+  // Performance Metrics
+  calculationTime  Int?     // Milliseconds taken to calculate
+  cacheHit        Boolean  @default(false)
+  version         String   @default("1.0") // Algorithm version
+  
+  @@index([latitude, longitude])
+  @@index([geohash])
+  @@index([overallScore])
+  @@index([timeOfDay])
+  @@index([lastUpdated])
+  @@index([expiresAt])
+  @@index([confidence])
+  @@map("safety_scores")
+}
+
+model LightingData {
+  id               String   @id @default(cuid())
+  latitude         Float
+  longitude        Float
+  viirsBrightness  Float?   // VIIRS satellite brightness data
+  municipalStatus  String?  // working, broken, partial, unknown
+  lastInspection   DateTime?
+  lightType        String?  // street_light, area_light, decorative, etc.
+  wattage          Int?
+  coverage         Float?   // coverage radius in meters
+  crowdsourcedReports Int   @default(0)
+  averageRating    Float?   // user reported lighting quality
+  timestamp        DateTime @default(now())
+  source           String   // viirs, municipal, crowdsourced
 
   @@index([latitude, longitude])
   @@index([timestamp])
 }
 
+model POIData {
+  id               String   @id @default(cuid())
+  name             String
+  category         String   // restaurant, hospital, police, school, etc.
+  latitude         Float
+  longitude        Float
+  address          String?
+  phone            String?
+  website          String?
+  businessHours    String?  // JSON string of operating hours
+  safetyRating     Float?   // community safety rating
+  footfallDensity  Int      @default(0) // estimated daily visitors
+  isEmergencyService Boolean @default(false)
+  source           String   // osm, mappls, google, manual
+  lastUpdated      DateTime @default(now())
+  isActive         Boolean  @default(true)
+
+  @@index([latitude, longitude])
+  @@index([category])
+  @@index([isEmergencyService])
+}
+
+model WeatherData {
+  id               String   @id @default(cuid())
+  area             String   // city or region identifier
+  temperature      Float?
+  humidity         Float?
+  visibility       Float?   // in kilometers
+  weatherCondition String   // clear, cloudy, rain, fog, storm
+  windSpeed        Float?
+  pressure         Float?
+  uvIndex          Float?
+  alerts           String?  // JSON array of weather alerts
+  source           String   @default("imd") // imd, openweather, etc.
+  timestamp        DateTime @default(now())
+
+  @@index([area])
+  @@index([timestamp])
+}
+
+model DarkSpotData {
+  id              String   @id @default(cuid())
+  latitude        Float
+  longitude       Float
+  city            String
+  state           String
+  spotType        String   // official, crowdsourced, predicted
+  severity        Int      // 1-5 scale
+  description     String?
+  reportedBy      String?  // agency or user ID
+  status          String   @default("active") // active, resolved, under_repair
+  resolutionDate  DateTime?
+  municipalId     String?  // official municipal tracking ID
+  lastVerified    DateTime @default(now())
+  source          String   // municipal, viirs, crowdsourced
+
+  @@index([latitude, longitude])
+  @@index([city, state])
+  @@index([status])
+}
+
+// Enterprise Route Planning Model
 model Route {
-  id          String   @id @default(cuid())
-  userId      String
-  startLat    Float
-  startLng    Float
-  endLat      Float
-  endLng      Float
-  routeData   String // JSON string of route coordinates
-  distance    Float // in meters
-  duration    Int // in seconds
-  safetyScore Int // 0-100 scale
-  routeType   String // 'safest', 'fastest', 'balanced'
-  createdAt   DateTime @default(now())
-
+  id              String   @id @default(cuid())
+  userId          String
+  
+  // Route Geography
+  startLat        Float
+  startLng        Float
+  endLat          Float
+  endLng          Float
+  startAddress    String?
+  endAddress      String?
+  startGeohash    String?  // For spatial indexing
+  endGeohash      String?  // For spatial indexing
+  
+  // Route Data & Metrics
+  routeData       String   // JSON string of route coordinates and segments
+  distance        Float    // in meters
+  duration        Int      // in seconds
+  elevationGain   Float?   // total elevation gain in meters
+  
+  // Safety Analysis
+  safetyScore     Int      // 0-100 overall route safety score
+  lightingScore   Int?     // Average lighting score along route
+  hazardCount     Int      @default(0) // Number of hazards along route
+  riskSegments    String?  // JSON array of high-risk route segments
+  safetyFactors   String?  // JSON object of detailed safety analysis
+  
+  // Route Classification
+  routeType       String   // safest, fastest, balanced, scenic, accessible
+  routeCategory   String   @default("primary") // primary, alternative, emergency_fallback
+  userType        String   @default("pedestrian") // pedestrian, two_wheeler, cyclist
+  transportMode   String?  // walking, cycling, e_scooter, motorcycle
+  
+  // Contextual Information
+  weatherCondition String? // weather at time of routing
+  timeOfDay       String?  // time category when route was created
+  trafficLevel    String?  // light, moderate, heavy
+  crowdLevel      String?  // low, medium, high
+  localEvents     String?  // JSON array of local events affecting route
+  
+  // User Experience
+  preferences     String?  // JSON object of user preferences applied
+  feedback        String?  // JSON string of user feedback
+  rating          Int?     // 1-5 user rating of route safety
+  actualTravelTime Int?    // actual time taken if provided
+  incidents       String?  // JSON array of incidents encountered
+  
+  // Alternative Routes
+  alternatives    String?  // JSON array of alternative routes considered
+  parentRouteId   String?  // If this is an alternative to another route
+  isRecommended   Boolean  @default(false) // System recommendation status
+  
+  // Real-time Updates
+  dynamicUpdates  String?  // JSON array of real-time route updates
+  alertsActive    Boolean  @default(false) // Active safety alerts on route
+  lastUpdated     DateTime @default(now())
+  
+  // Performance & Analytics
+  calculationTime Int?     // Milliseconds taken to calculate route
+  algorithmVersion String  @default("1.0") // Routing algorithm version
+  dataSourcesUsed String?  // JSON array of data sources consulted
+  
+  // Emergency Features
+  emergencyExits  String?  // JSON array of emergency exit points
+  nearbyHelp      String?  // JSON array of nearby help locations
+  
+  createdAt       DateTime @default(now())
+  
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  
   @@index([userId])
   @@index([createdAt])
+  @@index([routeType])
+  @@index([safetyScore])
+  @@index([startGeohash])
+  @@index([endGeohash])
+  @@index([userType])
+  @@index([isRecommended])
+  @@map("routes")
 }
 
 model EmergencyAlert {
@@ -90,24 +558,110 @@ model EmergencyAlert {
   @@index([createdAt])
 }
 
+// Trust-Weighted Crowdsourcing System
 model IncidentReport {
-  id           String   @id @default(cuid())
-  userId       String?
-  latitude     Float
-  longitude    Float
-  incidentType String // 'theft', 'assault', 'suspicious', 'lighting', 'other'
-  description  String?
-  severity     Int // 1-5 scale
-  status       String   @default("pending") // 'pending', 'verified', 'resolved'
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
+  id              String   @id @default(cuid())
+  userId          String?
+  
+  // Location Information
+  latitude        Float
+  longitude       Float
+  geohash         String   // For spatial indexing
+  address         String?
+  landmark        String?  // Nearby landmark for reference
+  
+  // Incident Classification
+  incidentType    String   // theft, assault, suspicious, lighting, pothole, harassment, vandalism, accident
+  subcategory     String?  // detailed classification within type
+  severity        Int      // 1-5 scale (1=minor, 5=critical)
+  urgency         String   @default("medium") // low, medium, high, critical
+  
+  // Report Content
+  title           String?
+  description     String?
+  tags            String?  // JSON array of relevant tags
+  
+  // Media Evidence
+  images          String?  // JSON array of image URLs
+  audio           String?  // JSON array of audio URLs
+  video           String?  // JSON array of video URLs
+  mediaProcessed  Boolean  @default(false) // AI processing status
+  
+  // Trust & Verification System
+  status          String   @default("pending") // pending, verified, resolved, dismissed, duplicate
+  verifiedBy      String?  // userId of verifier for trusted reporters
+  verificationCount Int    @default(0) // Number of independent verifications
+  crossReports    Int      @default(0) // Other users reporting same issue
+  officialConfirmed Boolean @default(false) // Municipal/police confirmation
+  trustScore      Float?   // Wilson score based trust calculation
+  reliabilityScore Float?  // 0-1 score of report reliability
+  
+  // Reporter Information
+  isAnonymous     Boolean  @default(false)
+  reporterTrust   Float?   // Reporter's trust level at time of report
+  reporterHistory String?  // JSON summary of reporter's history
+  
+  // Temporal Context
+  timeOfIncident  DateTime? // When incident actually occurred
+  reportDelay     Int?     // Minutes between incident and report
+  weatherCondition String? // Weather at time of incident
+  crowdLevel      String? // low, medium, high
+  lightingCondition String? // well_lit, dimly_lit, dark
+  trafficLevel    String? // low, medium, high
+  
+  // Community Interaction
+  upvotes         Int      @default(0)
+  downvotes       Int      @default(0)
+  helpfulVotes    Int      @default(0)
+  flaggedCount    Int      @default(0)
+  comments        String?  // JSON array of community comments
+  commentsCount   Int      @default(0)
+  
+  // Impact Assessment
+  affectedUsers   Int      @default(0) // Estimated users affected
+  routesImpacted  String?  // JSON array of route IDs affected
+  safetyImpact    String   @default("local") // local, area, citywide
+  
+  // Resolution Tracking
+  actionTaken     String?  // description of action taken
+  resolvedBy      String?  // agency or authority that resolved
+  resolutionNotes String?
+  resolutionDate  DateTime?
+  resolutionTime  Int?     // Hours from report to resolution
+  followUpRequired Boolean @default(false)
+  
+  // AI Analysis
+  aiAnalysis      String?  // JSON object of AI-generated insights
+  sentimentScore  Float?   // -1 to 1 sentiment analysis
+  topicsExtracted String?  // JSON array of extracted topics
+  similarReports  String?  // JSON array of similar report IDs
+  
+  // System Metadata
+  deviceInfo      String?  // JSON object of device information
+  appVersion      String?
+  reportMethod    String   @default("app") // app, web, api, import
+  dataQuality     String   @default("medium") // low, medium, high
+  
+  // Privacy & Compliance
+  dataRetention   DateTime? // DPDP Act compliance
+  consentGiven    Boolean  @default(true)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-
+  
   @@index([userId])
   @@index([incidentType])
   @@index([status])
+  @@index([severity])
   @@index([createdAt])
+  @@index([latitude, longitude])
+  @@index([geohash])
+  @@index([trustScore])
+  @@index([timeOfIncident])
+  @@index([verificationCount])
+  @@map("incident_reports")
 }
 
 model Post {
@@ -122,4 +676,194 @@ model Post {
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([authorId])
+  @@map("posts")
+}
+
+// Enterprise Data Integration Models
+
+// VIIRS Satellite Data Integration
+model VIIRSData {
+  id              String   @id @default(cuid())
+  latitude        Float
+  longitude       Float
+  geohash         String   // For spatial indexing
+  brightness      Float    // Radiance value from VIIRS Black Marble
+  quality         String   // high, medium, low based on cloud cover
+  cloudCover      Float?   // Cloud cover percentage
+  acquisitionDate DateTime // Date when satellite data was acquired
+  processingLevel String   @default("L3") // VIIRS processing level
+  
+  // Processed Metrics
+  lightingCategory String  // dark, dim, moderate, bright, very_bright
+  darknessScore   Int      // 0-100 (inverted brightness for safety)
+  reliability     Float    @default(0.8) // Data reliability score
+  
+  // Metadata
+  satellitePass   String?  // Satellite pass information
+  resolution      Float    @default(500) // Resolution in meters
+  dataSource      String   @default("NASA_VIIRS")
+  
+  createdAt       DateTime @default(now())
+  lastUpdated     DateTime @default(now())
+  
+  @@index([latitude, longitude])
+  @@index([geohash])
+  @@index([acquisitionDate])
+  @@index([lightingCategory])
+  @@map("viirs_data")
+}
+
+// Municipal Integration
+model MunicipalData {
+  id              String   @id @default(cuid())
+  city            String
+  state           String
+  
+  // Infrastructure Data
+  streetLights    String?  // JSON array of street light locations
+  cctvCameras     String?  // JSON array of CCTV locations
+  policeStations  String?  // JSON array of police station locations
+  hospitals       String?  // JSON array of hospital locations
+  busStops        String?  // JSON array of bus stop locations
+  
+  // Dark Spot Information
+  officialDarkSpots String? // JSON array of officially identified dark spots
+  maintenanceSchedule String? // JSON object of maintenance schedules
+  budgetAllocations String? // JSON object of safety budget allocations
+  
+  // Contact Information
+  emergencyNumbers String? // JSON object of local emergency numbers
+  contactPersons  String? // JSON array of municipal contact persons
+  
+  // Metadata
+  dataSource      String   // municipal_api, manual_entry, import
+  lastSyncAt      DateTime @default(now())
+  nextSyncAt      DateTime?
+  apiEndpoint     String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([city, state])
+  @@index([lastSyncAt])
+  @@map("municipal_data")
+}
+
+// AI/ML Prediction Models
+model SafetyPrediction {
+  id              String   @id @default(cuid())
+  latitude        Float
+  longitude       Float
+  geohash         String
+  
+  // Prediction Types
+  predictionType  String   // incident_forecast, anomaly_detection, risk_assessment
+  modelVersion    String   // ML model version used
+  
+  // Predictions
+  incidentProbability Float? // 0-1 probability of incident in next 24h
+  riskLevel       String   // low, medium, high, critical
+  confidence      Float    // 0-1 model confidence
+  
+  // Time-based Predictions
+  hourlyRisk      String?  // JSON array of hourly risk scores
+  weeklyPattern   String?  // JSON object of weekly patterns
+  seasonalFactors String?  // JSON object of seasonal adjustments
+  
+  // Anomaly Detection
+  anomalyScore    Float?   // 0-1 anomaly score
+  anomalyType     String?  // unusual_activity, infrastructure_failure, event_impact
+  
+  // Feature Importance
+  topFactors      String?  // JSON array of most important factors
+  modelFeatures   String?  // JSON object of all model features used
+  
+  // Validation
+  validatedBy     String?  // Method of validation
+  accuracy        Float?   // Historical accuracy of this prediction type
+  
+  // Temporal
+  predictionFor   DateTime // Date/time this prediction is for
+  validUntil      DateTime // When prediction expires
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([latitude, longitude])
+  @@index([geohash])
+  @@index([predictionType])
+  @@index([riskLevel])
+  @@index([predictionFor])
+  @@index([validUntil])
+  @@map("safety_predictions")
+}
+
+// Real-time Event Processing
+model RealTimeEvent {
+  id              String   @id @default(cuid())
+  eventType       String   // emergency_alert, incident_report, weather_alert, traffic_update
+  latitude        Float?
+  longitude       Float?
+  geohash         String?
+  
+  // Event Data
+  severity        String   // low, medium, high, critical
+  title           String
+  description     String?
+  
+  // Affected Area
+  radiusMeters    Int?     // Affected radius in meters
+  affectedRoutes  String?  // JSON array of affected route IDs
+  affectedUsers   String?  // JSON array of affected user IDs
+  
+  // Response
+  autoResponse    String?  // JSON object of automated response actions
+  notificationsSent Int    @default(0)
+  responseTime    Int?     // Response time in seconds
+  
+  // Status
+  status          String   @default("active") // active, acknowledged, resolved, expired
+  acknowledgedBy  String?  // User ID who acknowledged
+  acknowledgedAt  DateTime?
+  resolvedAt      DateTime?
+  
+  // Metadata
+  source          String   // app, api, import, system
+  priority        Int      @default(3) // 1-5 priority level
+  
+  createdAt       DateTime @default(now())
+  expiresAt       DateTime?
+  
+  @@index([eventType])
+  @@index([severity])
+  @@index([status])
+  @@index([latitude, longitude])
+  @@index([geohash])
+  @@index([createdAt])
+  @@index([expiresAt])
+  @@map("realtime_events")
+}
+
+// System Configuration
+model SystemConfig {
+  id              String   @id @default(cuid())
+  configKey       String   @unique
+  configValue     String   // JSON string or simple value
+  dataType        String   // string, number, boolean, json, array
+  category        String   // safety_algorithm, data_sources, api_limits, features
+  description     String?
+  isEditable      Boolean  @default(true)
+  requiresRestart Boolean  @default(false)
+  
+  // Version Control
+  version         String   @default("1.0")
+  previousValue   String?
+  changedBy       String?
+  changedAt       DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([configKey])
+  @@index([category])
+  @@map("system_config")
 }

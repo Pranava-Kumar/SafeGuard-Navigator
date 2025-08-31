@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import "../globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/context/AuthContext";
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { notFound } from 'next/navigation';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,6 +16,12 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+const locales = ['en', 'ta'];
+
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
 
 export const metadata: Metadata = {
   title: "SafeGuard Navigator - Your Trusted Safety Companion",
@@ -33,9 +42,32 @@ export const metadata: Metadata = {
   },
 };
 
-import { redirect } from 'next/navigation';
+export default async function LocaleLayout({
+  children,
+  params: { locale }
+}: {
+  children: React.ReactNode;
+  params: { locale: string };
+}) {
+  // Validate that the incoming `locale` parameter is valid
+  if (!locales.includes(locale as any)) notFound();
 
-export default function RootLayout() {
-  // Redirect to default locale
-  redirect('/en');
+  // Providing all messages to the client
+  // side is the easiest way to get started
+  const messages = await getMessages();
+
+  return (
+    <html lang={locale} suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+      >
+        <NextIntlClientProvider messages={messages}>
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
+        </NextIntlClientProvider>
+      </body>
+    </html>
+  );
 }

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 import { useAuth } from "../../context/AuthContext";
 import { 
@@ -67,7 +68,7 @@ interface ResearchData {
   }>;
 }
 
-export default function AnalyticsPage() {
+function AnalyticsPageContent() {
   const [analytics, setAnalytics] = useState<SafetyAnalytics | null>(null);
   const [researchData, setResearchData] = useState<ResearchData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -666,5 +667,13 @@ export default function AnalyticsPage() {
         </Tabs>
       </div>
     </div>
+  );
+}
+
+export default function AnalyticsPage() {
+  return (
+    <ProtectedRoute requiredRole="user">
+      <AnalyticsPageContent />
+    </ProtectedRoute>
   );
 }

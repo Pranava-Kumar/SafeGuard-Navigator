@@ -31,7 +31,8 @@ import {
 import RouteInputModal from "@/components/dashboard/RouteInputModal";
 import RouteDetailsModal from "@/components/dashboard/RouteDetailsModal";
 import ContactsModal from "@/components/dashboard/ContactsModal";
-import { useAuth } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { useAuth } from "@/context/AuthContext";
 
 interface SafetyPreference {
   riskTolerance: number;
@@ -69,7 +70,11 @@ interface EmergencyAlertHistory {
 }
 
 export default function DashboardPage() {
-  return <Dashboard />;
+  return (
+    <ProtectedRoute requiredRole="user">
+      <Dashboard />
+    </ProtectedRoute>
+  );
 }
 
 function Dashboard() {
@@ -90,12 +95,7 @@ function Dashboard() {
     }
   });
 
-  // Redirect to home if not authenticated and not loading
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      window.location.href = '/';
-    }
-  }, [isAuthenticated, isLoading]);
+
 
   const [routeHistory, setRouteHistory] = useState<RouteHistory[]>([]);
 

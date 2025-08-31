@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapPin, Navigation, Shield, Clock, Users, AlertTriangle, Search } from "lucide-react";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
-export default function MapPage() {
+function MapPageContent() {
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [timeOfDay, setTimeOfDay] = useState("day");
@@ -285,5 +286,13 @@ export default function MapPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MapPage() {
+  return (
+    <ProtectedRoute requiredRole="user">
+      <MapPageContent />
+    </ProtectedRoute>
   );
 }

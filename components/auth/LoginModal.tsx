@@ -32,29 +32,17 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginM
       return;
     }
 
-    const success = await login(email, password);
-    if (success) {
-      // Check for stored redirect URL
-      const redirectUrl = sessionStorage.getItem('redirect_after_login');
-      sessionStorage.removeItem('redirect_after_login');
-      
-      if (redirectUrl && redirectUrl !== '/dashboard') {
-        window.location.href = redirectUrl;
-      } else {
-        onClose();
-      }
+    const result = await login(email, password);
+    if (result.success) {
+      onClose();
     } else {
-      setError("Invalid email or password");
+      setError(result.message || "Invalid email or password");
     }
   };
 
-  const demoCredentials = [
-    { email: "user@example.com", password: "password", role: "Standard User" },
-    { email: "admin@example.com", password: "admin123", role: "Administrator" },
-    { email: "premium@example.com", password: "premium123", role: "Premium User" }
-  ];
-
   if (!isOpen) return null;
+
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -123,16 +111,18 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginM
           </form>
 
           <div className="mt-6">
-            <div className="text-sm text-gray-600 mb-3">Demo Credentials:</div>
+            <div className="text-sm text-gray-600 mb-3">Quick Test Login:</div>
             <div className="space-y-2 text-xs">
-              {demoCredentials.map((cred, index) => (
-                <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                  <span className="font-mono">{cred.email}</span>
-                  <span className="text-gray-500">{cred.password}</span>
-                  <Badge variant="outline" className="text-xs">{cred.role}</Badge>
-                </div>
-              ))}
+              <div className="flex justify-between items-center p-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100"
+                   onClick={() => { setEmail("test@saferoute.com"); setPassword("Test123!"); }}>
+                <span className="font-mono">test@saferoute.com</span>
+                <span className="text-gray-500">Test123!</span>
+                <Badge variant="outline" className="text-xs">Demo</Badge>
+              </div>
             </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Or create a new account using the registration form.
+            </p>
           </div>
 
           <div className="mt-6 text-center">
