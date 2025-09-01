@@ -1,138 +1,109 @@
 "use client";
 
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, MapPin, Route, AlertTriangle, BarChart3, Target, Zap, CheckCircle, Award, Building, Lightbulb, Phone, Navigation, TrendingUp, Eye, Camera } from "lucide-react";
+import { Shield, Users, MapPin, Zap, Building, Lightbulb, Navigation } from "lucide-react";
 
 export default function AboutPage() {
+  const impact = [
+    {
+      metric: "25%",
+      label: "Reduction in Low-lit Exposure",
+      description: "Target outcome for route safety improvement"
+    },
+    {
+      metric: "+30%",
+      label: "Self-Reported Safety Perception",
+      description: "User confidence improvement with SafeRoute"
+    },
+    {
+      metric: "<3s",
+      label: "112/SOS Activation",
+      description: "Sub-3-second emergency response activation"
+    },
+    {
+      metric: "90%",
+      label: "Report Verification Rate",
+      description: "Trust-weighted crowdsourced accuracy"
+    }
+  ];
+
   const teamMembers = [
     {
-      name: "Dr. Sarah Chen",
-      role: "Founder & CEO",
-      bio: "PhD in Urban Safety Engineering with 15+ years experience in smart city solutions. Former lead safety architect at major tech companies. Passionate about leveraging technology to create safer urban environments for all communities.",
-      image: "/api/placeholder/150/150",
-      expertise: ["Urban Planning", "Safety Systems", "AI/ML", "Smart Cities"],
-      story: "After witnessing a close friend's assault in a poorly lit campus area, Dr. Chen dedicated her career to developing technology-driven safety solutions. Her research in predictive safety modeling at MIT laid the foundation for SafeGuard Navigator's AI algorithms.",
-      education: "PhD Urban Safety Engineering - MIT, MS Civil Engineering - Stanford University",
-      achievements: ["Named Top 40 Under 40 in Tech Innovation", "Published 50+ research papers", "3 patents in safety systems"]
+      name: "Pranava Kumar",
+      role: "Team Lead",
+      bio: "Infosys PALS TechZooka Hackathon 2025 participant leading the SafeGuard Navigators team.",
+      expertise: ["AI/ML", "Geospatial Systems", "Urban Safety", "Next.js"]
     },
     {
-      name: "Michael Rodriguez",
-      role: "CTO",
-      bio: "Expert in geospatial technology and real-time data processing. Led engineering teams at multiple mapping and navigation startups.",
-      image: "/api/placeholder/150/150",
-      expertise: ["Geospatial Tech", "Real-time Systems", "Data Engineering", "Scalability"]
+      name: "Sam Daniel J",
+      role: "Backend Developer",
+      bio: "Full-stack developer specializing in real-time safety data processing and microservices.",
+      expertise: ["Python", "FastAPI", "PostgreSQL", "Kafka"]
     },
     {
-      name: "Priya Patel",
-      role: "Head of Safety Research",
-      bio: "Criminologist and data scientist specializing in urban safety patterns. Published researcher with expertise in predictive policing.",
-      image: "/api/placeholder/150/150",
-      expertise: ["Criminology", "Data Science", "Research", "Statistics"]
+      name: "Muhilan M",
+      role: "Frontend Developer",
+      bio: "UI/UX specialist focused on intuitive safety systems for diverse user needs.",
+      expertise: ["React", "Next.js", "Tailwind CSS", "Shadcn UI"]
     },
     {
-      name: "David Kim",
-      role: "Lead Product Designer",
-      bio: "UX/UI designer focused on safety-critical applications. Former design lead at public safety technology companies.",
-      image: "/api/placeholder/150/150",
-      expertise: ["UX Design", "Safety Systems", "User Research", "Product Strategy"]
+      name: "Mrs. Chinchu Nair",
+      role: "Mentor",
+      description: "Assistant Professor, Department of CSE guiding the team's technical approach.",
+      expertise: ["Computer Science", "Software Engineering", "Education"]
     }
   ];
 
   const milestones = [
     {
-      year: "2022",
-      title: "Company Founded",
-      description: "SafeGuard Navigator was founded with a mission to make urban spaces safer through technology.",
+      year: "2025",
+      title: "Hackathon Participation",
+      description: "Participating in Infosys PALS TechZooka Hackathon 2025 with SafeRoute solution.",
       icon: Building
-    },
-    {
-      year: "2023",
-      title: "Seed Funding",
-      description: "Raised $5M in seed funding from top-tier VCs to build out the technology platform.",
-      icon: TrendingUp
-    },
-    {
-      year: "2023",
-      title: "Beta Launch",
-      description: "Launched beta version in 3 major cities with 10,000+ early adopters.",
-      icon: MapPin
-    },
-    {
-      year: "2024",
-      title: "Series A",
-      description: "Secured $20M Series A funding to expand globally and enhance AI capabilities.",
-      icon: Zap
-    },
-    {
-      year: "2024",
-      title: "Global Launch",
-      description: "Official launch in 50+ cities across 15 countries with 100K+ active users.",
-      icon: Target
     },
     {
       year: "2025",
-      title: "AI Integration",
-      description: "Advanced AI predictive models deployed for proactive safety recommendations.",
+      title: "AI-Driven Safety Scoring",
+      description: "Developing multi-factor SafetyScore algorithm prioritizing pedestrian and two-wheeler safety.",
       icon: Lightbulb
+    },
+    {
+      year: "2025",
+      title: "DPDP Act 2023 Compliance",
+      description: "Implementing India's Digital Personal Data Protection Act compliance framework.",
+      icon: Shield
+    },
+    {
+      year: "2025",
+      title: "Trust-Weighted Crowdsourcing",
+      description: "Building Wilson score-based reputation system for community safety intelligence.",
+      icon: Users
     }
   ];
 
-  const technologies = [
+  const coreValues = [
     {
-      name: "Real-time Processing",
-      description: "Process millions of data points in real-time to provide instant safety updates",
-      icon: Zap
+      title: "Safety First",
+      description: "Prioritizing user safety and protection above all else in route planning and navigation.",
+      icon: Shield
     },
     {
-      name: "Machine Learning",
-      description: "Advanced ML models predict safety patterns and identify potential risks",
-      icon: Target
-    },
-    {
-      name: "Geospatial Analysis",
-      description: "Precise location-based analysis using advanced mapping technologies",
+      title: "India-First Design",
+      description: "Tailored specifically for Indian urban contexts with regulatory compliance and language support.",
       icon: MapPin
     },
     {
-      name: "Data Integration",
-      description: "Aggregate data from multiple sources including government, crowdsourced, and IoT devices",
-      icon: Eye
+      title: "Community Intelligence",
+      description: "Leveraging trust-weighted crowdsourcing for real-time, verifiable safety insights.",
+      icon: Users
     },
     {
-      name: "Mobile Technology",
-      description: "Native mobile apps with offline capabilities and real-time notifications",
-      icon: Phone
-    },
-    {
-      name: "Cloud Infrastructure",
-      description: "Scalable cloud architecture ensuring 99.9% uptime and global availability",
-      icon: Building
-    }
-  ];
-
-  const impact = [
-    {
-      metric: "100K+",
-      label: "Active Users",
-      description: "Across 50+ cities worldwide"
-    },
-    {
-      metric: "1M+",
-      label: "Routes Planned",
-      description: "With 99.2% safety accuracy"
-    },
-    {
-      metric: "40%",
-      label: "Incident Reduction",
-      description: "In areas with active user participation"
-    },
-    {
-      metric: "60%",
-      label: "Faster Response",
-      description: "Emergency response time improvement"
+      title: "Privacy-Preserving AI",
+      description: "On-device processing and data minimization to protect user privacy and comply with DPDP Act.",
+      icon: Zap
     }
   ];
 
@@ -145,21 +116,21 @@ export default function AboutPage() {
             <div className="flex items-center">
               <div className="flex-shrink-0 flex items-center">
                 <Shield className="h-8 w-8 text-blue-600" />
-                <span className="ml-2 text-xl font-bold text-gray-900">SafeGuard Navigator</span>
+                <span className="ml-2 text-xl font-bold text-gray-900">SafeRoute</span>
               </div>
               <div className="hidden md:block ml-10">
                 <div className="flex items-baseline space-x-4">
-                  <a href="/" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Home</a>
-                  <a href="/about" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">About</a>
-                  <a href="/map" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Map</a>
-                  <a href="/dashboard" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
-                  <a href="/analytics" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Analytics</a>
+                  <Link href="/" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Home</Link>
+                  <Link href="/about" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">About</Link>
+                  <Link href="/map" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Map</Link>
+                  <Link href="/dashboard" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Dashboard</Link>
+                  <Link href="/analytics" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Analytics</Link>
                 </div>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="outline" onClick={() => window.location.href = '/dashboard'}>Sign In</Button>
-              <Button onClick={() => window.location.href = '/dashboard'}>Get Started</Button>
+              <Button variant="outline" onClick={() => window.location.href = "/dashboard"}>Sign In</Button>
+              <Button onClick={() => window.location.href = "/dashboard"}>Get Started</Button>
             </div>
           </div>
         </div>
@@ -170,19 +141,19 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              About SafeGuard Navigator
+              About SafeRoute
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto">
-              We're on a mission to make urban spaces safer for everyone through innovative technology and community-driven solutions.
+              Building AI Runways for Safer Urban Mobility in India through intelligent navigation for pedestrians and two-wheeler riders.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" onClick={() => window.location.href = '/map'}>
-                Explore Platform
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" onClick={() => window.location.href = "/map"}>
+                Explore Safety Map
               </Button>
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600" onClick={() => {
                 document.getElementById('team-section')?.scrollIntoView({ behavior: 'smooth' });
               }}>
-                Meet Our Team
+                Meet the Team
               </Button>
             </div>
           </div>
@@ -198,133 +169,107 @@ export default function AboutPage() {
               Our Mission
             </h2>
             <p className="text-xl text-gray-600">
-              To create safer urban environments by leveraging cutting-edge technology, real-time data, and community engagement. We believe everyone deserves to feel safe in their city, and we're building the tools to make that a reality.
+              To address India&apos;s severe road safety crisis by building intelligent navigation that prioritizes personal safety over speed for vulnerable road users.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center">
-              <CardHeader>
-                <div className="flex justify-center mb-4">
-                  <Shield className="h-12 w-12 text-blue-600" />
-                </div>
-                <CardTitle>Safety First</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Every decision we make and every feature we build is focused on improving urban safety and saving lives.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center">
-              <CardHeader>
-                <div className="flex justify-center mb-4">
-                  <Users className="h-12 w-12 text-green-600" />
-                </div>
-                <CardTitle>Community Driven</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  We believe in the power of community. Our platform thrives on user participation and collective safety awareness.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center">
-              <CardHeader>
-                <div className="flex justify-center mb-4">
-                  <Zap className="h-12 w-12 text-purple-600" />
-                </div>
-                <CardTitle>Innovation</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  We're constantly pushing the boundaries of what's possible with safety technology and AI-driven insights.
-                </p>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {coreValues.map((value, index) => (
+              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-center mb-4">
+                    <div className="p-3 rounded-full bg-blue-100">
+                      <value.icon className="h-8 w-8 text-blue-600" />
+                    </div>
+                  </div>
+                  <CardTitle>{value.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 text-sm">
+                    {value.description}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Founder's Story Section */}
-      <section className="py-20 bg-blue-50">
+      {/* Problem Statement */}
+      <section className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Founder's Story
-              </h2>
-              <p className="text-xl text-gray-600">
-                The personal journey that inspired SafeGuard Navigator
-              </p>
-            </div>
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              India&apos;s Road Safety Crisis
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Addressing the urgent need for safety-first navigation in Indian urban contexts
+            </p>
+          </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-6">
-                  SC
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">The Challenge</h3>
+              <div className="space-y-6">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-1">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  </div>
+                  <div className="ml-4">
+                    <h4 className="text-lg font-semibold text-gray-900">4,61,312 Road Accidents (2022)</h4>
+                    <p className="text-gray-600">Resulting in 1,68,491 deaths with 65% affecting vulnerable road users</p>
+                  </div>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">Dr. Sarah Chen</h3>
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  "The idea for SafeGuard Navigator wasn't born in a boardroom or during a brainstorming session. It was born from a moment of helplessness that changed my life forever."
-                </p>
-                <div className="space-y-4 text-gray-600">
-                  <p>
-                    In 2018, while pursuing her PhD at MIT, Dr. Chen's close friend became a victim of assault in a poorly lit area of their campus. Despite being just blocks away, emergency response was delayed, and the incident could have been prevented with better safety infrastructure and real-time awareness.
-                  </p>
-                  <p>
-                    This traumatic experience sparked a mission: to leverage technology to create safer urban environments. Dr. Chen redirected her research from general urban planning to focus specifically on predictive safety modeling and real-time risk assessment.
-                  </p>
-                  <p>
-                    After years of research and development at MIT and Stanford, Dr. Chen assembled a team of experts who shared her vision. Together, they transformed academic research into a practical, life-saving platform that's now protecting communities across 50+ cities worldwide.
-                  </p>
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-1">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  </div>
+                  <div className="ml-4">
+                    <h4 className="text-lg font-semibold text-gray-900">43% Night-time Fatalities</h4>
+                    <p className="text-gray-600">Of pedestrian deaths in Delhi occur at night due to poor lighting</p>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-1">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  </div>
+                  <div className="ml-4">
+                    <h4 className="text-lg font-semibold text-gray-900">4,289 Dark Spots</h4>
+                    <p className="text-gray-600">Officially identified in Delhi, creating perception and reality of unsafe routes</p>
+                  </div>
                 </div>
               </div>
-              
+            </div>
+            <div className="bg-white p-8 rounded-xl shadow-lg">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Our Solution</h3>
               <div className="space-y-6">
-                <Card className="bg-white p-6">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Award className="h-5 w-5 text-yellow-500" />
-                      The Turning Point
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600">
-                      "I realized that safety shouldn't be a privilege but a fundamental right. Technology could bridge the gap between existing infrastructure and the safety we all deserve."
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white p-6">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Target className="h-5 w-5 text-blue-500" />
-                      The Vision
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600">
-                      "Imagine a world where everyone can navigate their city with confidence, knowing they have the safest route and instant access to help when needed. That's the world we're building."
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white p-6">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Zap className="h-5 w-5 text-purple-500" />
-                      The Mission
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600">
-                      "We're not just building an app; we're creating a movement. A movement where technology serves humanity's most basic need - the need to feel safe."
-                    </p>
-                  </CardContent>
-                </Card>
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-1">
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  </div>
+                  <div className="ml-4">
+                    <h4 className="text-lg font-semibold text-gray-900">Multi-Factor SafetyScore</h4>
+                    <p className="text-gray-600">Algorithm combining lighting, footfall, hazards, and proximity to help</p>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-1">
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  </div>
+                  <div className="ml-4">
+                    <h4 className="text-lg font-semibold text-gray-900">Trust-Weighted Crowdsourcing</h4>
+                    <p className="text-gray-600">Wilson score-based reputation system filtering noisy/malicious reports</p>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-1">
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  </div>
+                  <div className="ml-4">
+                    <h4 className="text-lg font-semibold text-gray-900">DPDP Act 2023 Compliance</h4>
+                    <p className="text-gray-600">Explicit consent flows and user rights mechanisms for data privacy</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -332,20 +277,20 @@ export default function AboutPage() {
       </section>
 
       {/* Impact Section */}
-      <section className="py-20 bg-slate-50">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Our Impact
+              Measurable Impact Targets
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Measurable results that demonstrate our commitment to creating safer urban environments
+              Our commitment to creating tangible safety improvements for Indian urban communities
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {impact.map((item, index) => (
-              <Card key={index} className="text-center">
+              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <CardTitle className="text-3xl font-bold text-blue-600">{item.metric}</CardTitle>
                   <CardDescription className="text-lg font-semibold">{item.label}</CardDescription>
@@ -359,51 +304,19 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Technology Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Powered by Advanced Technology
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our platform leverages cutting-edge technology to provide accurate, real-time safety insights
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {technologies.map((tech, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-blue-100">
-                      <tech.icon className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <CardTitle className="text-lg">{tech.name}</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">{tech.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Team Section */}
       <section id="team-section" className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Meet Our Team
+              SafeGuard Navigators Team
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Led by experts in urban safety, technology, and product design
+              Dedicated team building AI-driven public safety navigation for the Infosys PALS TechZooka Hackathon 2025
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {teamMembers.map((member, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
@@ -418,31 +331,9 @@ export default function AboutPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 mb-4">{member.bio}</p>
-                  
-                  {/* Show additional details for founder */}
-                  {member.role === "Founder & CEO" && (
-                    <div className="space-y-3 mb-4">
-                      <div className="bg-blue-50 p-3 rounded-lg">
-                        <div className="text-sm font-medium text-blue-800 mb-1">Education:</div>
-                        <div className="text-sm text-blue-700">{member.education}</div>
-                      </div>
-                      <div className="bg-green-50 p-3 rounded-lg">
-                        <div className="text-sm font-medium text-green-800 mb-1">Key Achievements:</div>
-                        <ul className="text-sm text-green-700 space-y-1">
-                          {member.achievements?.map((achievement, achIndex) => (
-                            <li key={achIndex} className="flex items-start gap-2">
-                              <CheckCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                              {achievement}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-                  
+                  <p className="text-gray-600 mb-4">{member.bio || member.description}</p>
                   <div className="flex flex-wrap gap-2">
-                    {member.expertise.map((skill, skillIndex) => (
+                    {member.expertise && member.expertise.map((skill, skillIndex) => (
                       <Badge key={skillIndex} variant="secondary" className="text-xs">
                         {skill}
                       </Badge>
@@ -460,173 +351,124 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Our Journey
+              Hackathon Journey
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Key milestones in our mission to create safer urban environments
+              Key milestones in our mission to build AI Runways for Safer Urban Mobility
             </p>
           </div>
 
-          <div className="relative">
-            {/* Timeline line */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 w-0.5 h-full bg-blue-200"></div>
-            
-            <div className="space-y-12">
-              {milestones.map((milestone, index) => (
-                <div key={index} className={`relative flex items-center ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}>
-                  <div className="w-1/2 pr-8">
-                    <Card className="hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-blue-100">
-                            <milestone.icon className="h-6 w-6 text-blue-600" />
-                          </div>
-                          <div>
-                            <CardTitle className="text-lg">{milestone.title}</CardTitle>
-                            <Badge variant="outline" className="text-blue-600">{milestone.year}</Badge>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-gray-600">{milestone.description}</p>
-                      </CardContent>
-                    </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {milestones.map((milestone, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-blue-100">
+                      <milestone.icon className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <Badge variant="outline" className="text-blue-600 mb-2">{milestone.year}</Badge>
+                      <CardTitle className="text-lg">{milestone.title}</CardTitle>
+                    </div>
                   </div>
-                  <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg"></div>
-                  <div className="w-1/2 pl-8"></div>
-                </div>
-              ))}
-            </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">{milestone.description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Values Section */}
+      {/* Technology Stack */}
       <section className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Our Values
+              Technology Stack
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              The principles that guide everything we do
+              Enterprise-grade architecture designed for scalability and real-time safety intelligence
             </p>
           </div>
 
-          <Tabs defaultValue="integrity" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto">
-              <TabsTrigger value="integrity">Integrity</TabsTrigger>
-              <TabsTrigger value="innovation">Innovation</TabsTrigger>
-              <TabsTrigger value="community">Community</TabsTrigger>
-              <TabsTrigger value="excellence">Excellence</TabsTrigger>
-            </TabsList>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Navigation className="h-5 w-5 text-blue-600" />
+                  Frontend & Mobile
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• Next.js 15+ with App Router</li>
+                  <li>• React 19+</li>
+                  <li>• TypeScript 5+</li>
+                  <li>• Tailwind CSS v4+</li>
+                  <li>• Shadcn UI & Magic UI</li>
+                  <li>• Mappls SDK for Indian addresses</li>
+                </ul>
+              </CardContent>
+            </Card>
 
-            <TabsContent value="integrity" className="mt-12">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3">
-                    <CheckCircle className="h-6 w-6 text-green-600" />
-                    Integrity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">
-                    We operate with complete transparency and honesty. Our safety data is accurate, our algorithms are fair, and our commitment to user privacy is unwavering.
-                  </p>
-                  <ul className="space-y-2 text-sm text-gray-600">
-                    <li>• Transparent data sourcing and processing</li>
-                    <li>• Unbiased safety algorithms</li>
-                    <li>• Strong privacy protection</li>
-                    <li>• Ethical AI development practices</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </TabsContent>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-green-600" />
+                  Backend & AI/ML
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• FastAPI (Python) for ML services</li>
+                  <li>• NestJS (TypeScript) for microservices</li>
+                  <li>• PostgreSQL + PostGIS for geospatial data</li>
+                  <li>• XGBoost/LightGBM for safety prediction</li>
+                  <li>• Kafka/RabbitMQ for event streaming</li>
+                  <li>• OSRM for route optimization</li>
+                </ul>
+              </CardContent>
+            </Card>
 
-            <TabsContent value="innovation" className="mt-12">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3">
-                    <Lightbulb className="h-6 w-6 text-yellow-600" />
-                    Innovation
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">
-                    We constantly push the boundaries of what's possible in safety technology. We invest heavily in R&D and are always exploring new ways to leverage technology for public safety.
-                  </p>
-                  <ul className="space-y-2 text-sm text-gray-600">
-                    <li>• Continuous R&D investment</li>
-                    <li>• Cutting-edge AI/ML adoption</li>
-                    <li>• Rapid prototyping and iteration</li>
-                    <li>• Forward-thinking technology stack</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="community" className="mt-12">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3">
-                    <Users className="h-6 w-6 text-blue-600" />
-                    Community
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">
-                    We believe safety is a collective responsibility. Our platform thrives on community participation, and we actively engage with users, local authorities, and safety organizations.
-                  </p>
-                  <ul className="space-y-2 text-sm text-gray-600">
-                    <li>• Active user community engagement</li>
-                    <li>• Partnerships with local authorities</li>
-                    <li>• Collaborative safety initiatives</li>
-                    <li>• Open feedback and improvement</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="excellence" className="mt-12">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3">
-                    <Award className="h-6 w-6 text-purple-600" />
-                    Excellence
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">
-                    We strive for excellence in everything we do. From our user interface to our backend infrastructure, we maintain the highest standards of quality and reliability.
-                  </p>
-                  <ul className="space-y-2 text-sm text-gray-600">
-                    <li>• Rigorous quality assurance</li>
-                    <li>• High system reliability</li>
-                    <li>• Exceptional user experience</li>
-                    <li>• Continuous improvement</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-purple-600" />
+                  Security & Compliance
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• DPDP Act 2023 compliant architecture</li>
+                  <li>• JWT with refresh tokens</li>
+                  <li>• AES-256 encryption at rest</li>
+                  <li>• TLS 1.3 for data in transit</li>
+                  <li>• Data minimization principles</li>
+                  <li>• India data residency requirements</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-blue-600 text-white">
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-700 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Join Us in Creating Safer Cities
+            Join Us in Building Safer Cities
           </h2>
           <p className="text-xl mb-8 text-blue-100">
-            Be part of the movement that's making urban spaces safer for everyone.
+            Be part of the movement to make urban navigation safer for pedestrians and two-wheeler riders in India.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" onClick={() => window.location.href = '/dashboard'}>
+            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" onClick={() => window.location.href = "/dashboard"}>
               Get Started
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600" onClick={() => window.location.href = '/map'}>
-              Learn More
+            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600" onClick={() => window.location.href = "/map"}>
+              View Demo
             </Button>
           </div>
         </div>
@@ -639,10 +481,10 @@ export default function AboutPage() {
             <div>
               <div className="flex items-center mb-4">
                 <Shield className="h-8 w-8 text-blue-400" />
-                <span className="ml-2 text-xl font-bold">SafeGuard Navigator</span>
+                <span className="ml-2 text-xl font-bold">SafeRoute</span>
               </div>
               <p className="text-gray-400">
-                Your trusted companion for safe navigation and emergency assistance.
+                AI-driven public safety navigation for pedestrians and two-wheeler riders in Indian cities.
               </p>
             </div>
             <div>
@@ -650,31 +492,25 @@ export default function AboutPage() {
               <ul className="space-y-2 text-gray-400">
                 <li><a href="#" className="hover:text-white">Features</a></li>
                 <li><a href="#" className="hover:text-white">Pricing</a></li>
-                <li><a href="#" className="hover:text-white">API</a></li>
-                <li><a href="#" className="hover:text-white">Mobile Apps</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-4">Company</h3>
+              <h3 className="text-lg font-semibold mb-4">Hackathon</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="/about" className="hover:text-white">About</a></li>
-                <li><a href="#" className="hover:text-white">Blog</a></li>
-                <li><a href="#" className="hover:text-white">Careers</a></li>
-                <li><a href="#" className="hover:text-white">Contact</a></li>
+                <li><a href="/about" className="hover:text-white">About Team</a></li>
+                <li><a href="#" className="hover:text-white">Solution Document</a></li>
               </ul>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4">Support</h3>
               <ul className="space-y-2 text-gray-400">
                 <li><a href="#" className="hover:text-white">Help Center</a></li>
-                <li><a href="#" className="hover:text-white">Safety Guidelines</a></li>
                 <li><a href="#" className="hover:text-white">Community</a></li>
-                <li><a href="#" className="hover:text-white">Status</a></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 SafeGuard Navigator. All rights reserved.</p>
+            <p>&copy; 2025 SafeGuard Navigators. All rights reserved. | Infosys PALS TechZooka Hackathon 2025</p>
           </div>
         </div>
       </footer>

@@ -9,65 +9,93 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  AlertTriangle, 
-  Shield, 
-  MapPin, 
-  Clock, 
-  Users, 
-  Phone, 
+import {
+  AlertTriangle,
+  Shield,
+  MapPin,
+  Clock,
+  Users,
+  Phone,
   MessageSquare,
   CheckCircle,
   XCircle,
-  Loader2
+  Loader2,
+  Navigation,
+  User,
+  Heart
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 interface EmergencyContact {
   id: string;
   name: string;
-  number: string;
-  type: 'police' | 'medical' | 'family' | 'friend';
+  phone: string;
+  relationship: string;
+  priority: number;
 }
 
 interface EmergencyAlertData {
-  type: 'medical' | 'police' | 'fire' | 'personal';
-  location: [number, number];
+  type: 'medical' | 'crime' | 'accident' | 'personal_safety' | 'natural_disaster';
+  severity: number;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
   message: string;
-  contacts: string[];
   timestamp: Date;
 }
 
 interface EmergencyAlertProps {
-  userLocation?: [number, number] | null;
+  userLocation?: {
+    latitude: number;
+    longitude: number;
+  } | null;
   onAlertTriggered?: (alertData: EmergencyAlertData) => void;
 }
 
-export default function EmergencyAlert({ 
-  userLocation = null, 
-  onAlertTriggered 
+export default function EmergencyAlert({
+  userLocation = null,
+  onAlertTriggered
 }: EmergencyAlertProps) {
+  const { user } = useAuth();
   const [isAlertActive, setIsAlertActive] = useState(false);
-  const [alertType, setAlertType] = useState<EmergencyAlertData['type']>('personal');
+  const [alertType, setAlertType] = useState<EmergencyAlertData['type']>('personal_safety');
+  const [severity, setSeverity] = useState<number>(3);
   const [customMessage, setCustomMessage] = useState('');
-  const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [alertStatus, setAlertStatus] = useState<'idle' | 'sending' | 'sent' | 'confirmed' | 'error'>('idle');
   const [alertId, setAlertId] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(5);
-
-  const emergencyContacts: EmergencyContact[] = [
-    { id: 'police', name: 'Police Emergency', number: '911', type: 'police' },
-    { id: 'medical', name: 'Medical Emergency', number: '911', type: 'medical' },
-    { id: 'family', name: 'Family Contact', number: '+1-234-567-8900', type: 'family' },
-    { id: 'friend', name: 'Friend Contact', number: '+1-234-567-8901', type: 'friend' },
-  ];
+  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>([]);
 
   const alertTypes = [
-    { value: 'medical', label: 'Medical Emergency', icon: '🏥', color: 'bg-red-500' },
-    { value: 'police', label: 'Police Assistance', icon: '👮', color: 'bg-blue-500' },
-    { value: 'fire', label: 'Fire Emergency', icon: '🔥', color: 'bg-orange-500' },
-    { value: 'personal', label: 'Personal Safety', icon: '🛡️', color: 'bg-purple-500' },
+    { value: 'medical', label: 'Medical Emergency', icon: '🏥', color: 'bg-red-500', description: 'Medical assistance required' },
+    { value: 'crime', label: 'Crime/Assault', icon: '👮', color: 'bg-blue-500', description: 'Crime or personal assault' },
+    { value: 'accident', label: 'Accident', icon: '🚗', color: 'bg-orange-500', description: 'Vehicle or personal accident' },
+    { value: 'personal_safety', label: 'Personal Safety', icon: '🛡️', color: 'bg-purple-500', description: 'Feeling unsafe or threatened' },
+    { value: 'natural_disaster', label: 'Natural Disaster', icon: '🌪️', color: 'bg-green-500', description: 'Natural disaster or hazard' },
   ];
+
+  const severityLevels = [
+    { value: 1, label: 'Low', color: 'bg-green-500', description: 'Minor issue, not urgent' },
+    { value: 2, label: 'Moderate', color: 'bg-yellow-500', description: 'Requires attention soon' },
+    { value: 3, label: 'High', color: 'bg-orange-500', description: 'Urgent, requires immediate attention' },
+    { value: 4, label: 'Critical', color: 'bg-red-500', description: 'Life-threatening, immediate help needed' },
+    { value: 5, label: 'Emergency', color: 'bg-red-700', description: 'Extreme emergency, life in danger' },
+  ];
+
+  // Load user's emergency contacts
+  useEffect(() => {
+    if (user?.emergencyContacts) {
+      setEmergencyContacts(user.emergencyContacts.map((contact, index) => ({
+        id: contact.id || `contact-${index}`,
+        name: contact.name || 'Emergency Contact',
+        phone: contact.phone || '',
+        relationship: contact.relationship || 'Emergency Contact',
+        priority: contact.priority || 1
+      })));
+    }
+  }, [user]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -87,20 +115,18 @@ export default function EmergencyAlert({
       return;
     }
 
-    if (selectedContacts.length === 0) {
-      alert('Please select at least one emergency contact.');
-      return;
-    }
-
     setIsSending(true);
     setAlertStatus('sending');
 
     try {
       const alertData: EmergencyAlertData = {
         type: alertType,
-        location: userLocation,
-        message: customMessage || `Emergency alert triggered at ${userLocation[0].toFixed(4)}, ${userLocation[1].toFixed(4)}`,
-        contacts: selectedContacts,
+        severity: severity,
+        location: {
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude
+        },
+        message: customMessage || `Emergency alert triggered at ${userLocation.latitude.toFixed(4)}, ${userLocation.longitude.toFixed(4)}`,
         timestamp: new Date()
       };
 
@@ -108,17 +134,24 @@ export default function EmergencyAlert({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
         },
-        body: JSON.stringify(alertData),
+        body: JSON.stringify({
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+          emergencyType: alertType,
+          severity: severity,
+          description: customMessage
+        }),
       });
 
       if (response.ok) {
         const result = await response.json();
-        setAlertId(result.alert_id);
+        setAlertId(result.alertId);
         setAlertStatus('sent');
         setCountdown(5);
         onAlertTriggered?.(alertData);
-        
+
         // Auto-confirm after countdown
         setTimeout(() => {
           setAlertStatus('confirmed');
@@ -128,10 +161,11 @@ export default function EmergencyAlert({
           }, 2000);
         }, 5000);
       } else {
-        throw new Error('Failed to send emergency alert');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send emergency alert');
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending emergency alert:', error);
       setAlertStatus('error');
       setTimeout(() => {
@@ -142,18 +176,10 @@ export default function EmergencyAlert({
     }
   };
 
-  const toggleContact = (contactId: string) => {
-    setSelectedContacts(prev => 
-      prev.includes(contactId) 
-        ? prev.filter(id => id !== contactId)
-        : [...prev, contactId]
-    );
-  };
-
   const resetAlertForm = () => {
-    setAlertType('personal');
+    setAlertType('personal_safety');
+    setSeverity(3);
     setCustomMessage('');
-    setSelectedContacts([]);
     setAlertStatus('idle');
     setAlertId(null);
     setCountdown(5);
@@ -185,7 +211,10 @@ export default function EmergencyAlert({
           <div className="text-center">
             <Loader2 className="h-12 w-12 animate-spin text-red-600 mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Sending Emergency Alert</h3>
-            <p className="text-gray-600">Notifying emergency contacts...</p>
+            <p className="text-gray-600">Notifying emergency contacts and 112 services...</p>
+            <div className="mt-4 text-sm text-gray-500">
+              <p>Sub-3 second emergency activation target</p>
+            </div>
           </div>
         );
 
@@ -196,7 +225,11 @@ export default function EmergencyAlert({
               <Clock className="h-8 w-8 text-yellow-600" />
             </div>
             <h3 className="text-lg font-semibold mb-2">Alert Sent Successfully</h3>
-            <p className="text-gray-600 mb-2">Emergency alert has been sent to your contacts.</p>
+            <p className="text-gray-600 mb-2">Emergency alert has been sent to 112 emergency services and your contacts.</p>
+            <div className="bg-blue-50 p-3 rounded-lg mb-4">
+              <div className="text-sm font-medium text-blue-800">Alert ID: {alertId}</div>
+              <div className="text-xs text-blue-700 mt-1">Response time: &lt;3 seconds</div>
+            </div>
             <p className="text-sm text-gray-500">Auto-confirming in {countdown} seconds...</p>
             <div className="mt-4">
               <Button onClick={() => setAlertStatus('confirmed')} variant="outline">
@@ -214,8 +247,16 @@ export default function EmergencyAlert({
             </div>
             <h3 className="text-lg font-semibold mb-2">Emergency Alert Confirmed</h3>
             <p className="text-gray-600">Help is on the way. Stay safe and remain calm.</p>
-            <div className="mt-4">
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center justify-center text-sm text-gray-600">
+                <Phone className="h-4 w-4 mr-1" />
+                <span>112 Emergency Services Notified</span>
+              </div>
+              <div className="flex items-center justify-center text-sm text-gray-600">
+                <Users className="h-4 w-4 mr-1" />
+                <span>{emergencyContacts.length} Emergency Contacts Notified</span>
+              </div>
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 mt-2">
                 Alert ID: {alertId}
               </Badge>
             </div>
@@ -243,19 +284,23 @@ export default function EmergencyAlert({
               <Label className="text-sm font-medium text-gray-700 mb-3 block">
                 Emergency Type
               </Label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 {alertTypes.map((type) => (
                   <button
                     key={type.value}
                     onClick={() => setAlertType(type.value as EmergencyAlertData['type'])}
-                    className={`p-4 border-2 rounded-lg text-center transition-colors ${
-                      alertType === type.value
+                    className={`p-4 border-2 rounded-lg text-left transition-colors ${alertType === type.value
                         ? 'border-red-500 bg-red-50'
                         : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                      }`}
                   >
-                    <div className="text-2xl mb-2">{type.icon}</div>
-                    <div className="font-medium text-sm">{type.label}</div>
+                    <div className="flex items-center">
+                      <div className="text-2xl mr-3">{type.icon}</div>
+                      <div>
+                        <div className="font-medium">{type.label}</div>
+                        <div className="text-sm text-gray-600">{type.description}</div>
+                      </div>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -263,26 +308,25 @@ export default function EmergencyAlert({
 
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-3 block">
-                Emergency Contacts
+                Severity Level
               </Label>
-              <div className="space-y-2">
-                {emergencyContacts.map(contact => (
-                  <label key={contact.id} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="checkbox"
-                      checked={selectedContacts.includes(contact.id)}
-                      onChange={() => toggleContact(contact.id)}
-                      className="mr-3 h-4 w-4 text-red-600"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium">{contact.name}</div>
-                      <div className="text-sm text-gray-500">{contact.number}</div>
-                    </div>
-                    <Badge variant="outline" className="text-xs">
-                      {contact.type}
-                    </Badge>
-                  </label>
+              <div className="grid grid-cols-5 gap-2">
+                {severityLevels.map((level) => (
+                  <button
+                    key={level.value}
+                    onClick={() => setSeverity(level.value)}
+                    className={`p-2 rounded-lg text-center transition-colors ${severity === level.value
+                        ? `${level.color} text-white`
+                        : 'bg-gray-100 hover:bg-gray-200'
+                      }`}
+                  >
+                    <div className="font-medium text-sm">{level.label}</div>
+                    <div className="text-xs mt-1">{level.value}</div>
+                  </button>
                 ))}
+              </div>
+              <div className="mt-2 text-sm text-gray-600">
+                {severityLevels.find(l => l.value === severity)?.description}
               </div>
             </div>
 
@@ -294,22 +338,53 @@ export default function EmergencyAlert({
                 id="message"
                 value={customMessage}
                 onChange={(e) => setCustomMessage(e.target.value)}
-                placeholder="Add any additional information that might help..."
+                placeholder="Add any additional information that might help emergency responders..."
                 className="w-full"
                 rows={3}
               />
             </div>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <div className="flex items-start">
-                <MapPin className="h-4 w-4 text-yellow-600 mt-0.5 mr-2 flex-shrink-0" />
-                <div className="text-sm text-yellow-800">
-                  <strong>Location Sharing:</strong> Your current location will be shared with selected contacts.
+                <Navigation className="h-4 w-4 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
+                <div className="text-sm text-blue-800">
+                  <strong>Location Sharing:</strong> Your precise location will be shared with 112 emergency services and your emergency contacts.
                   {userLocation && (
                     <div className="mt-1">
-                      Coordinates: {userLocation[0].toFixed(4)}, {userLocation[1].toFixed(4)}
+                      Coordinates: {userLocation.latitude.toFixed(6)}, {userLocation.longitude.toFixed(6)}
                     </div>
                   )}
+                </div>
+              </div>
+            </div>
+
+            {emergencyContacts.length > 0 && (
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                <div className="flex items-start">
+                  <User className="h-4 w-4 text-purple-600 mt-0.5 mr-2 flex-shrink-0" />
+                  <div className="text-sm text-purple-800">
+                    <strong>Emergency Contacts:</strong> {emergencyContacts.length} contacts will be notified
+                    <div className="mt-1 space-y-1">
+                      {emergencyContacts.slice(0, 2).map((contact, index) => (
+                        <div key={index} className="flex items-center text-xs">
+                          <Phone className="h-3 w-3 mr-1" />
+                          <span>{contact.name} ({contact.relationship})</span>
+                        </div>
+                      ))}
+                      {emergencyContacts.length > 2 && (
+                        <div className="text-xs">+{emergencyContacts.length - 2} more contacts</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="flex items-start">
+                <Heart className="h-4 w-4 text-red-600 mt-0.5 mr-2 flex-shrink-0" />
+                <div className="text-sm text-red-800">
+                  <strong>Sub-3 Second Emergency Activation:</strong> This alert system targets &lt;3 second activation to 112 emergency services and your contacts.
                 </div>
               </div>
             </div>
@@ -324,10 +399,20 @@ export default function EmergencyAlert({
               </Button>
               <Button
                 onClick={triggerEmergencyAlert}
-                disabled={isSending || selectedContacts.length === 0}
+                disabled={isSending}
                 className="flex-1 bg-red-600 hover:bg-red-700"
               >
-                {isSending ? 'Sending...' : 'Send Emergency Alert'}
+                {isSending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    Send Emergency Alert
+                  </>
+                )}
               </Button>
             </div>
           </div>

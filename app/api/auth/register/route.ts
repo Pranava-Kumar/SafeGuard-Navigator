@@ -40,7 +40,7 @@ const registerSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting
-    const identifier = request.ip || request.headers.get('x-forwarded-for') || 'anonymous';
+    const identifier = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'anonymous';
     const rateLimitResult = await authRateLimit.register(identifier);
     
     if (!rateLimitResult.success) {
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     const data = validationResult.data;
     
     // Get client information for DPDP compliance
-    const ipAddress = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+    const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
     // Register user with DPDP compliance
@@ -135,25 +135,25 @@ export async function POST(request: NextRequest) {
 
     return response;
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Registration error:', error);
     
     // Handle specific errors
-    if (error.message.includes('already exists')) {
+    if (error instanceof Error && error.message.includes('already exists')) {
       return NextResponse.json(
         { error: 'An account with this email already exists' },
         { status: 409 }
       );
     }
 
-    if (error.message.includes('Password validation failed')) {
+    if (error instanceof Error && error.message.includes('Password validation failed')) {
       return NextResponse.json(
         { error: error.message },
         { status: 400 }
       );
     }
 
-    if (error.message.includes('consent is required')) {
+    if (error instanceof Error && error.message.includes('consent is required')) {
       return NextResponse.json(
         { error: 'Data processing consent is required under DPDP Act 2023' },
         { status: 400 }

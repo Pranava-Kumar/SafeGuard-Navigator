@@ -41,67 +41,59 @@ export default function IncidentReportModal({ isOpen, onClose, location, onSaveR
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const { toast } = useToast();
 
   const incidentTypes = [
-    "Theft",
-    "Assault",
-    "Harassment",
-    "Suspicious Activity",
-    "Vandalism",
-    "Traffic Incident",
-    "Medical Emergency",
-    "Fire Hazard",
-    "Lighting Issue",
-    "Other"
+    "POTHOLE",
+    "POOR_LIGHTING",
+    "HARASSMENT",
+    "THEFT",
+    "ACCIDENT",
+    "CONSTRUCTION",
   ];
 
   const handleSubmit = async () => {
     if (!formData.type || !formData.description) {
-      setError("Please fill in all required fields");
+      toast({ variant: "destructive", title: "Error", description: "Please fill in all required fields" });
       return;
     }
 
     setIsSubmitting(true);
-    setError("");
 
     try {
-      // Simulate API call to report incident
-      setTimeout(() => {
-        const reportData: IncidentData = {
-          type: formData.type,
+      const response = await fetch("/api/v1/reports", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          lat: location ? location[0] : 0,
+          lon: location ? location[1] : 0,
+          hazard_type: formData.type,
           description: formData.description,
-          location: location ? `${location[0].toFixed(4)}, ${location[1].toFixed(4)}` : "Unknown",
-          severity: formData.severity,
-          timestamp: new Date().toISOString(),
-          reporterInfo: {
-            name: formData.reporterName || "Anonymous",
-            contact: formData.reporterContact
-          }
-        };
+        }),
+      });
 
-        if (onSaveReport) {
-          onSaveReport(reportData);
-        }
-
+      if (response.ok) {
+        toast({ title: "Success", description: "Report submitted successfully!" });
         setSuccess(true);
-        setIsSubmitting(false);
-
-        // Auto-close after success
         setTimeout(() => {
           onClose();
           setSuccess(false);
-          // Reset form
           setFormData({
             type: "",
             description: "",
             severity: "medium",
             reporterName: "",
-            reporterContact: ""
+            reporterContact: "",
           });
         }, 2000);
-      }, 1500);
+      } else {
+        toast({ variant: "destructive", title: "Error", description: "Failed to submit report. Please try again." });
+      }
     } catch (err) {
-      setError("Failed to submit report. Please try again.");
+      toast({ variant: "destructive", title: "Error", description: "Failed to submit report. Please try again." });
+    } finally {
       setIsSubmitting(false);
     }
   };

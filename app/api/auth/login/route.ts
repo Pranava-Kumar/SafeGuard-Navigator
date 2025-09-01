@@ -74,14 +74,30 @@ export async function POST(request: NextRequest) {
       firstName: user.firstName,
       lastName: user.lastName,
       displayName: user.displayName,
+      phone: user.phone,
+      avatar: user.avatar,
       userType: user.userType,
       role: user.role,
-      language: user.language,
       emailVerified: user.emailVerified,
+      language: user.language,
+      city: user.city,
+      state: user.state,
+      country: user.country,
       subscriptionPlan: user.subscriptionPlan,
       subscriptionStatus: user.subscriptionStatus,
+      dataProcessingConsent: user.dataProcessingConsent,
+      consentDate: user.consentDate,
+      consentVersion: user.consentVersion,
+      locationSharingLevel: user.locationSharingLevel,
+      crowdsourcingParticipation: user.crowdsourcingParticipation,
+      personalizedRecommendations: user.personalizedRecommendations,
+      analyticsConsent: user.analyticsConsent,
+      marketingConsent: user.marketingConsent,
+      riskTolerance: user.riskTolerance,
+      timePreference: user.timePreference,
       lastLoginAt: user.lastLoginAt,
-      createdAt: user.createdAt
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
     };
 
     // Create response with access token
@@ -110,7 +126,7 @@ export async function POST(request: NextRequest) {
 
     return response;
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Login error:', error);
     
     // Handle specific errors

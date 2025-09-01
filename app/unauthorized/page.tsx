@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Shield, AlertTriangle, Home, ArrowLeft } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function UnauthorizedPage() {
   const { user, logout } = useAuth();
@@ -11,10 +11,10 @@ export default function UnauthorizedPage() {
   const handleGoHome = () => {
     if (user) {
       // If user is logged in but doesn't have permission, redirect to dashboard
-      window.location.href = '/dashboard';
+      window.location.href = "/dashboard";
     } else {
       // If user is not logged in, redirect to home
-      window.location.href = '/';
+      window.location.href = "/";
     }
   };
 
@@ -38,16 +38,16 @@ export default function UnauthorizedPage() {
               Role: <span className="font-medium capitalize">{user.role}</span>
             </div>
           )}
-          
+
           <div className="flex flex-col gap-2">
             <Button onClick={handleGoHome} className="w-full">
               <Home className="h-4 w-4 mr-2" />
               Go to Dashboard
             </Button>
-            
+
             {user && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={logout}
                 className="w-full"
               >

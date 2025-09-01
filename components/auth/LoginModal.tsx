@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Shield, Mail, Lock, Eye, EyeOff, Fingerprint, Smartphone } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -20,29 +21,48 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginM
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [deviceId, setDeviceId] = useState("");
   const { login, isLoading } = useAuth();
+  const { toast } = useToast();
+
+  // Generate a simple device ID for tracking (in a real app, you'd use a more robust method)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      let id = localStorage.getItem('device_id');
+      if (!id) {
+        id = 'device_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('device_id', id);
+      }
+      setDeviceId(id);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     if (!email || !password) {
-      setError("Please fill in all fields");
+      toast({ variant: "destructive", title: "Error", description: "Please fill in all fields" });
       return;
     }
 
     const result = await login(email, password);
     if (result.success) {
+      toast({ title: "Success", description: "Logged in successfully!" });
       onClose();
     } else {
-      setError(result.message || "Invalid email or password");
+      toast({ variant: "destructive", title: "Error", description: result.message || "Invalid email or password" });
     }
   };
 
+  const handleDemoLogin = (email: string, password: string) => {
+    setEmail(email);
+    setPassword(password);
+  };
+
   if (!isOpen) return null;
-
-
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -105,24 +125,90 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginM
               </div>
             </div>
 
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <input
+                  id="remember-me"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                />
+                <Label htmlFor="remember-me" className="text-sm">
+                  Remember me
+                </Label>
+              </div>
+              <Button variant="link" className="text-sm p-0 h-auto">
+                Forgot password?
+              </Button>
+            </div>
+
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 
           <div className="mt-6">
-            <div className="text-sm text-gray-600 mb-3">Quick Test Login:</div>
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between items-center p-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100"
-                   onClick={() => { setEmail("test@saferoute.com"); setPassword("Test123!"); }}>
-                <span className="font-mono">test@saferoute.com</span>
-                <span className="text-gray-500">Test123!</span>
-                <Badge variant="outline" className="text-xs">Demo</Badge>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">
+                  Quick Access
+                </span>
               </div>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Or create a new account using the registration form.
-            </p>
+
+            <div className="mt-6 space-y-3">
+              <div className="text-sm text-gray-600">Demo Accounts:</div>
+              <div className="grid grid-cols-1 gap-2">
+                <Button
+                  variant="outline"
+                  className="w-full justify-between text-xs"
+                  onClick={() => handleDemoLogin("pedestrian@demo.com", "Demo123!")}
+                >
+                  <div className="flex items-center">
+                    <span>🚶</span>
+                    <span className="ml-2">Pedestrian Demo</span>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">Demo</Badge>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between text-xs"
+                  onClick={() => handleDemoLogin("rider@demo.com", "Demo123!")}
+                >
+                  <div className="flex items-center">
+                    <span>🏍️</span>
+                    <span className="ml-2">Two-Wheeler Demo</span>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">Demo</Badge>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between text-xs"
+                  onClick={() => handleDemoLogin("admin@demo.com", "Admin123!")}
+                >
+                  <div className="flex items-center">
+                    <span>🛡️</span>
+                    <span className="ml-2">Admin Demo</span>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">Demo</Badge>
+                </Button>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <Button variant="ghost" className="w-full" disabled>
+                <Fingerprint className="mr-2 h-4 w-4" />
+                Biometric Login
+              </Button>
+              <Button variant="ghost" className="w-full" disabled>
+                <Smartphone className="mr-2 h-4 w-4" />
+                OTP Login
+              </Button>
+            </div>
           </div>
 
           <div className="mt-6 text-center">

@@ -33,9 +33,21 @@ export const metadata: Metadata = {
   },
 };
 
-import { redirect } from 'next/navigation';
-
-export default function RootLayout() {
-  // Redirect to default locale
-  redirect('/en');
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+      >
+        <AuthProvider>
+          {children}
+          <Toaster />
+        </AuthProvider>
+      </body>
+    </html>
+  );
 }

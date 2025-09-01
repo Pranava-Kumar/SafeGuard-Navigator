@@ -327,7 +327,7 @@ export async function calculateHazardScore(
     hazardScore += infrastructureIssues * 8; // Dark spots are significant hazards
 
     // Weather hazards from current conditions
-    let weatherHazards = 0;
+    const weatherHazards = 0;
     // This would integrate with weather API in real implementation
     // For now, we'll use a placeholder
 

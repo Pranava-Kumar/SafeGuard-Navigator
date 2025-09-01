@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 export async function GET(request: NextRequest) {
   try {
     // Get token from cookies or Authorization header
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const tokenFromCookie = cookieStore.get('saferoute_token')?.value;
     const authHeader = request.headers.get('Authorization');
     const tokenFromHeader = authHeader?.replace('Bearer ', '');

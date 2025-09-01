@@ -2,7 +2,20 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-// Enhanced User interface based on SafeRoute requirements
+// Add the EmergencyContact interface before the User interface
+interface EmergencyContact {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  relationship: string;
+  isVerified: boolean;
+  priority: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Enhanced User interface based on SafeRoute requirements with DPDP compliance
 interface User {
   id: string;
   email: string;
@@ -11,14 +24,29 @@ interface User {
   displayName?: string;
   phone?: string;
   avatar?: string;
-  language: string; // en, ta
-  userType: string; // pedestrian, two_wheeler, cyclist, public_transport
-  role: string; // user, premium, admin, trusted_reporter, civic_partner
+  userType: 'pedestrian' | 'two_wheeler' | 'cyclist' | 'public_transport';
+  role: 'user' | 'premium' | 'admin' | 'trusted_reporter' | 'civic_partner' | 'super_admin';
   emailVerified: boolean;
+  language: 'en' | 'ta' | 'hi'; // English, Tamil, Hindi
   city?: string;
   state?: string;
-  createdAt: Date;
+  country: string;
+  subscriptionPlan: 'free' | 'premium' | 'enterprise';
+  subscriptionStatus: 'active' | 'cancelled' | 'expired' | 'trial';
+  dataProcessingConsent: boolean;
+  consentDate?: Date;
+  consentVersion: string;
+  locationSharingLevel: 'precise' | 'coarse' | 'city_only';
+  crowdsourcingParticipation: boolean;
+  personalizedRecommendations: boolean;
+  analyticsConsent: boolean;
+  marketingConsent: boolean;
+  riskTolerance: number; // 0-100
+  timePreference: 'safety_first' | 'balanced' | 'time_first';
   lastLoginAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  emergencyContacts?: EmergencyContact[]; // Add this line
 }
 
 interface RegisterData {
@@ -27,11 +55,12 @@ interface RegisterData {
   firstName: string;
   lastName: string;
   phone?: string;
-  userType?: string;
-  language?: string;
+  userType: 'pedestrian' | 'two_wheeler' | 'cyclist' | 'public_transport';
   dataProcessingConsent: boolean;
+  locationSharingLevel: 'precise' | 'coarse' | 'city_only';
   city?: string;
   state?: string;
+  language?: 'en' | 'ta' | 'hi';
 }
 
 interface AuthContextType {
@@ -85,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth/simple-login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -100,17 +129,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(data.user);
         return { success: true, message: data.message };
       } else {
-        return { 
-          success: false, 
+        return {
+          success: false,
           message: data.message || 'Login failed',
-          errors: data.errors 
+          errors: data.errors
         };
       }
     } catch (error) {
       console.error('Login error:', error);
-      return { 
-        success: false, 
-        message: 'Network error. Please try again.' 
+      return {
+        success: false,
+        message: 'Network error. Please try again.'
       };
     } finally {
       setIsLoading(false);
@@ -120,7 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (data: RegisterData) => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch('/api/auth/simple-register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -133,19 +162,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (result.success && result.user) {
         setUser(result.user);
-        return { success: true, message: result.message };
+        return {
+          success: true,
+          message: result.message || 'Registration successful'
+        };
       } else {
-        return { 
-          success: false, 
+        return {
+          success: false,
           message: result.message || 'Registration failed',
-          errors: result.errors 
+          errors: result.errors
         };
       }
     } catch (error) {
       console.error('Registration error:', error);
-      return { 
-        success: false, 
-        message: 'Network error. Please try again.' 
+      return {
+        success: false,
+        message: 'Network error. Please try again.'
       };
     } finally {
       setIsLoading(false);
@@ -155,7 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       setIsLoading(true);
-      
+
       // Call logout API
       await fetch('/api/auth/logout', {
         method: 'POST',
@@ -163,7 +195,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId: user?.id }),
       });
 
       // Clear user state

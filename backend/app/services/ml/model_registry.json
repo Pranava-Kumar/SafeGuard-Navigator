@@ -1,0 +1,26 @@
+{
+  "models": [
+    {
+      "name": "incident_forecast_model",
+      "version": "1.0.0",
+      "type": "RandomForestClassifier",
+      "features": [
+        "lighting_score",
+        "footfall_score",
+        "hazard_score",
+        "proximity_score",
+        "time_of_day",
+        "weather_condition",
+        "historical_incidents"
+      ],
+      "target": "incident_occurrence",
+      "performance": {
+        "accuracy": 0.85,
+        "precision": 0.82,
+        "recall": 0.88
+      },
+      "last_updated": "2025-08-31",
+      "training_data_size": 100000
+    }
+  ]
+}

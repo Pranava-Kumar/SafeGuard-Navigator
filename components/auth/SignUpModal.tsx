@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Mail, Lock, User, Phone, Eye, EyeOff, MapPin, Check } from "lucide-react";
+import { Shield, Mail, Lock, User, Phone, Eye, EyeOff, MapPin, Check, Globe, Languages } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -26,18 +27,23 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
     firstName: "",
     lastName: "",
     phone: "",
-    userType: "pedestrian",
-    language: "en",
+    userType: "pedestrian" as "pedestrian" | "two_wheeler" | "cyclist" | "public_transport",
     city: "",
     state: "",
-    dataProcessingConsent: false
+    language: "en" as "en" | "ta" | "hi",
+    dataProcessingConsent: false,
+    locationSharingConsent: false,
+    crowdsourcingConsent: true,
+    analyticsConsent: false,
+    marketingConsent: false
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  
+
   const { register, isLoading } = useAuth();
+  const { toast } = useToast();
 
   const handleChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -57,7 +63,7 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
     if (!formData.firstName.trim()) {
       newErrors.firstName = "First name is required";
     }
-    
+
     if (!formData.lastName.trim()) {
       newErrors.lastName = "Last name is required";
     }
@@ -84,14 +90,16 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
       newErrors.dataProcessingConsent = "You must consent to data processing to create an account";
     }
 
+    if (!formData.locationSharingConsent) {
+      newErrors.locationSharingConsent = "You must consent to location sharing for safety features";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setGeneralError("");
-    setSuccessMessage("");
 
     if (!validateForm()) {
       return;
@@ -105,38 +113,24 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
         lastName: formData.lastName,
         phone: formData.phone || undefined,
         userType: formData.userType,
-        language: formData.language,
         dataProcessingConsent: formData.dataProcessingConsent,
+        locationSharingLevel: "coarse",
         city: formData.city || undefined,
         state: formData.state || undefined,
+        language: formData.language
       });
 
       if (result.success) {
-        setSuccessMessage(result.message || "Account created successfully! Welcome to SafeRoute.");
+        toast({ title: "Success", description: result.message || "Account created successfully! Welcome to SafeRoute." });
         setTimeout(() => {
           onClose();
         }, 2000);
       } else {
-        if (result.errors) {
-          setErrors(result.errors);
-        }
-        setGeneralError(result.message || "Registration failed. Please try again.");
+        toast({ variant: "destructive", title: "Error", description: result.message || "Registration failed. Please try again." });
       }
     } catch (error) {
-      setGeneralError("Network error. Please try again.");
+      toast({ variant: "destructive", title: "Error", description: "Network error. Please try again." });
     }
-  };
-
-  const handleQuickSignup = (role: string) => {
-    // Auto-fill demo credentials for quick signup
-    setFormData(prev => ({
-      ...prev,
-      name: role === 'admin' ? 'Admin User' : role === 'premium' ? 'Premium User' : 'Demo User',
-      email: `${role}@demo.com`,
-      role: role,
-      password: 'demo123',
-      confirmPassword: 'demo123'
-    }));
   };
 
   if (!isOpen) return null;
@@ -243,7 +237,7 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="userType">I am a</Label>
                   <Select value={formData.userType} onValueChange={(value) => handleChange("userType", value)}>
@@ -278,19 +272,6 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="language">Language</Label>
-                  <Select value={formData.language} onValueChange={(value) => handleChange("language", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select language" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="ta">தமிழ் (Tamil)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -322,6 +303,23 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
                       className="pl-10"
                     />
                   </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="language">Language Preference</Label>
+                <div className="relative">
+                  <Languages className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Select value={formData.language} onValueChange={(value) => handleChange("language", value)}>
+                    <SelectTrigger className="pl-10">
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="ta">தமிழ் (Tamil)</SelectItem>
+                      <SelectItem value="hi">हिंदी (Hindi)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -375,24 +373,94 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
                 )}
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-start space-x-2">
-                  <Checkbox 
-                    id="dataProcessingConsent"
-                    checked={formData.dataProcessingConsent}
-                    onCheckedChange={(checked) => handleChange("dataProcessingConsent", checked === true)}
-                    className={errors.dataProcessingConsent ? 'border-red-300' : ''}
-                  />
-                  <Label htmlFor="dataProcessingConsent" className="text-sm leading-5">
-                    I consent to the processing of my personal data in accordance with SafeRoute's Privacy Policy and India's Digital Personal Data Protection Act 2023. *
-                  </Label>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-start space-x-2">
+                    <Checkbox
+                      id="dataProcessingConsent"
+                      checked={formData.dataProcessingConsent}
+                      onCheckedChange={(checked) => handleChange("dataProcessingConsent", checked === true)}
+                      className={errors.dataProcessingConsent ? 'border-red-300' : ''}
+                    />
+                    <Label htmlFor="dataProcessingConsent" className="text-sm leading-5">
+                      I consent to the processing of my personal data in accordance with SafeRoute's Privacy Policy and India's Digital Personal Data Protection Act 2023. *
+                    </Label>
+                  </div>
+                  {errors.dataProcessingConsent && (
+                    <p className="text-sm text-red-600">{errors.dataProcessingConsent}</p>
+                  )}
+                  <p className="text-xs text-gray-500">
+                    Your data will be processed securely within India and you retain full control over your information.
+                  </p>
                 </div>
-                {errors.dataProcessingConsent && (
-                  <p className="text-sm text-red-600">{errors.dataProcessingConsent}</p>
-                )}
-                <p className="text-xs text-gray-500">
-                  Your data will be processed securely within India and you retain full control over your information.
-                </p>
+
+                <div className="space-y-2">
+                  <div className="flex items-start space-x-2">
+                    <Checkbox
+                      id="locationSharingConsent"
+                      checked={formData.locationSharingConsent}
+                      onCheckedChange={(checked) => handleChange("locationSharingConsent", checked === true)}
+                      className={errors.locationSharingConsent ? 'border-red-300' : ''}
+                    />
+                    <Label htmlFor="locationSharingConsent" className="text-sm leading-5">
+                      I consent to sharing my location data for safety scoring and route optimization. *
+                    </Label>
+                  </div>
+                  {errors.locationSharingConsent && (
+                    <p className="text-sm text-red-600">{errors.locationSharingConsent}</p>
+                  )}
+                  <p className="text-xs text-gray-500">
+                    Location data is used to calculate safety scores and provide personalized route recommendations.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-start space-x-2">
+                    <Checkbox
+                      id="crowdsourcingConsent"
+                      checked={formData.crowdsourcingConsent}
+                      onCheckedChange={(checked) => handleChange("crowdsourcingConsent", checked === true)}
+                    />
+                    <Label htmlFor="crowdsourcingConsent" className="text-sm leading-5">
+                      I consent to participate in community safety reporting (crowdsourcing).
+                    </Label>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Your reports help improve safety for the entire community. You can opt out at any time.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-start space-x-2">
+                    <Checkbox
+                      id="analyticsConsent"
+                      checked={formData.analyticsConsent}
+                      onCheckedChange={(checked) => handleChange("analyticsConsent", checked === true)}
+                    />
+                    <Label htmlFor="analyticsConsent" className="text-sm leading-5">
+                      I consent to anonymized usage analytics for product improvement.
+                    </Label>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Analytics help us improve SafeRoute and understand user needs. All data is anonymized.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-start space-x-2">
+                    <Checkbox
+                      id="marketingConsent"
+                      checked={formData.marketingConsent}
+                      onCheckedChange={(checked) => handleChange("marketingConsent", checked === true)}
+                    />
+                    <Label htmlFor="marketingConsent" className="text-sm leading-5">
+                      I consent to receive product updates and safety tips via email.
+                    </Label>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Stay informed about new features, safety tips, and community initiatives.
+                  </p>
+                </div>
               </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>

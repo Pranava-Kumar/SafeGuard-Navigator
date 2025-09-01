@@ -77,7 +77,7 @@ function calculateRouteSafetyScore(coordinates: RoutePoint[]): Promise<number> {
           }))
         },
         orderBy: {
-          timestamp: "desc"
+          lastUpdated: "desc"
         }
       });
       
@@ -89,7 +89,7 @@ function calculateRouteSafetyScore(coordinates: RoutePoint[]): Promise<number> {
       }
       
       // Calculate weighted average of safety scores
-      const totalScore = safetyScores.reduce((sum: number, score: any) => sum + score.score, 0);
+      const totalScore = safetyScores.reduce((sum: number, score: any) => sum + score.overallScore, 0);
       const averageScore = totalScore / safetyScores.length;
       
       resolve(Math.round(averageScore));

@@ -1,5 +1,6 @@
 /**
  * Rate Limiting Utility for Enterprise Auth
+ * Supports both Redis and in-memory fallback
  */
 
 import { redis } from './db-enterprise';
@@ -11,11 +12,64 @@ interface RateLimitResult {
   reset: Date;
 }
 
+// In-memory store for fallback when Redis is not available
+const memoryStore = new Map<string, { count: number; resetTime: number }>();
+
 class RateLimit {
   private redis = redis();
+  private isRedisAvailable = false; // Default to false since Redis is not available
+
+  constructor() {
+    // Skip Redis availability check since it's not installed
+    console.log('Rate limiting using in-memory store (Redis not available)');
+  }
 
   /**
-   * Simple rate limiting implementation
+   * Memory-based rate limiting fallback
+   */
+  private async limitInMemory(
+    identifier: string,
+    limit: number,
+    windowMs: number,
+    prefix: string
+  ): Promise<RateLimitResult> {
+    const key = `${prefix}:${identifier}`;
+    const now = Date.now();
+    const windowStart = Math.floor(now / windowMs) * windowMs;
+    const resetTime = windowStart + windowMs;
+    
+    const current = memoryStore.get(key);
+    
+    // Clean up expired entries
+    if (current && current.resetTime <= now) {
+      memoryStore.delete(key);
+    }
+    
+    const entry = memoryStore.get(key) || { count: 0, resetTime };
+    
+    if (entry.count >= limit) {
+      return {
+        success: false,
+        limit,
+        remaining: 0,
+        reset: new Date(entry.resetTime)
+      };
+    }
+    
+    // Increment count
+    entry.count += 1;
+    memoryStore.set(key, entry);
+    
+    return {
+      success: true,
+      limit,
+      remaining: limit - entry.count,
+      reset: new Date(entry.resetTime)
+    };
+  }
+
+  /**
+   * Rate limiting with Redis or memory fallback
    * @param identifier - Unique identifier (IP, user ID, etc.)
    * @param limit - Maximum number of requests
    * @param windowMs - Time window in milliseconds
@@ -27,6 +81,11 @@ class RateLimit {
     windowMs: number = 15 * 60 * 1000, // 15 minutes
     prefix: string = 'ratelimit'
   ): Promise<RateLimitResult> {
+    // Use memory fallback if Redis is not available
+    if (!this.isRedisAvailable) {
+      return this.limitInMemory(identifier, limit, windowMs, prefix);
+    }
+
     const key = `${prefix}:${identifier}`;
     const now = Date.now();
     const window = Math.floor(now / windowMs);
@@ -59,14 +118,10 @@ class RateLimit {
         reset: new Date((window + 1) * windowMs)
       };
     } catch (error) {
-      console.error('Rate limit error:', error);
-      // On error, allow the request (fail open)
-      return {
-        success: true,
-        limit,
-        remaining: limit - 1,
-        reset: new Date(now + windowMs)
-      };
+      console.error('Redis rate limit error, falling back to memory:', error);
+      this.isRedisAvailable = false;
+      // Fallback to memory store
+      return this.limitInMemory(identifier, limit, windowMs, prefix);
     }
   }
 }

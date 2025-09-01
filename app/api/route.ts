@@ -156,13 +156,20 @@ export async function POST(request: NextRequest) {
     
     // Store in database (optional)
     try {
+      // Generate a simple geohash for the location
+      const geohash = `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
+      
       await db.safetyScore.create({
         data: {
           latitude,
           longitude,
-          score,
-          factors: JSON.stringify(factors),
-          timestamp: new Date()
+          geohash,
+          overallScore: score,
+          lightingData: JSON.stringify({ lighting: factors.lighting }),
+          footfallData: JSON.stringify({ traffic: factors.traffic, people: factors.people }),
+          hazardData: JSON.stringify({ crime: factors.crime }),
+          sources: JSON.stringify(["api"]),
+          lastUpdated: new Date()
         }
       });
     } catch (dbError) {
@@ -218,7 +225,7 @@ export async function GET(request: NextRequest) {
           }
         },
         orderBy: {
-          timestamp: "desc"
+          lastUpdated: "desc"
         },
         take: 100 // Limit results
       });
@@ -229,7 +236,7 @@ export async function GET(request: NextRequest) {
     // Get recent safety scores
     const recentScores = await db.safetyScore.findMany({
       orderBy: {
-        timestamp: "desc"
+        lastUpdated: "desc"
       },
       take: 50
     });
