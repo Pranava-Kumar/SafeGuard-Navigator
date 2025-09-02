@@ -2,20 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyToken, getUserById } from "./auth";
 import { z } from "zod";
 import { cookies } from "next/headers";
+import { SafeRouteUser } from "./auth";
 
 // Rate limiting store (in production, use Redis)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
 export interface AuthenticatedRequest extends NextRequest {
-  user?: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-    userType: string;
-    language: string;
-  };
+  user?: SafeRouteUser;
 }
 
 /**
@@ -24,10 +17,10 @@ export interface AuthenticatedRequest extends NextRequest {
 export async function withAuth(
   request: NextRequest,
   requiredRole?: string
-): Promise<{ user: any; error?: NextResponse }> {
+): Promise<{ user: SafeRouteUser | null; error?: NextResponse }> {
   try {
     // Get token from cookies or Authorization header
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const tokenFromCookie = cookieStore.get('saferoute_token')?.value;
     const authHeader = request.headers.get('Authorization');
     const tokenFromHeader = authHeader?.replace('Bearer ', '');
@@ -170,7 +163,7 @@ export function validateInput<T>(
     return { data: validatedData };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errors = error.errors.reduce((acc, err) => {
+      const errors = error.issues.reduce((acc: Record<string, string>, err: z.ZodIssue) => {
         const path = err.path.join('.');
         acc[path] = err.message;
         return acc;
@@ -253,7 +246,7 @@ export function getClientIP(request: NextRequest): string {
   }
   
   // Fallback to connection remote address
-  return request.ip || 'unknown';
+  return request.headers.get('x-forwarded-for') || 'unknown';
 }
 
 /**
@@ -278,7 +271,7 @@ export const CoordinatesSchema = z.object({
 /**
  * Standard API response wrapper
  */
-export interface APIResponse<T = any> {
+export interface APIResponse<T> {
   success: boolean;
   data?: T;
   message?: string;

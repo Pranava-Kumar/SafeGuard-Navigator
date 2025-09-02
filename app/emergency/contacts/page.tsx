@@ -248,7 +248,7 @@ export default function EmergencyContactsPage() {
             </div>
           ) : contacts.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-2">You don't have any emergency contacts yet.</p>
+              <p className="text-muted-foreground mb-2">You don&apos;t have any emergency contacts yet.</p>
               <p className="text-muted-foreground text-sm">Add contacts to notify them in case of emergency.</p>
             </div>
           ) : (

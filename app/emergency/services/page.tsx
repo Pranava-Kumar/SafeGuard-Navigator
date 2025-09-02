@@ -9,13 +9,18 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import EmergencyServices from '@/components/EmergencyServices';
-import { Box, Typography, Container, Paper, Button } from '@mui/material';
-import { Warning } from '@mui/icons-material';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  AlertTriangle,
+  Phone
+} from 'lucide-react';
 
 export default function EmergencyServicesPage() {
   const router = useRouter();
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-  
+
   // Get user's location on page load
   useEffect(() => {
     if (navigator.geolocation) {
@@ -29,63 +34,55 @@ export default function EmergencyServicesPage() {
       );
     }
   }, []);
-  
+
   // Handle emergency service selection
   const handleServiceSelect = (service: any) => {
     // Navigate to directions or show on map
     router.push(`/map?lat=${service.location.latitude}&lng=${service.location.longitude}&name=${encodeURIComponent(service.name)}`);
   };
-  
+
   // Handle emergency trigger
   const handleEmergencyTrigger = (location: [number, number], contactIds?: string[]) => {
     // Navigate to emergency alert page
     router.push('/emergency/alert');
   };
-  
+
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+    <div className="container mx-auto py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">
           Emergency Services
-        </Typography>
-        
-        <Typography variant="body1" gutterBottom>
+        </h1>
+
+        <p className="text-muted-foreground mb-4">
           Find and contact emergency services near you. You can also manage your emergency contacts and trigger emergency alerts.
-        </Typography>
-        
-        <Paper 
-          sx={{ 
-            p: 2, 
-            mt: 2, 
-            bgcolor: 'error.light', 
-            color: 'error.contrastText',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Warning sx={{ mr: 1 }} />
-            <Typography variant="body1">
-              In case of emergency, call the national emergency number: <strong>112</strong>
-            </Typography>
-          </Box>
-          
-          <Button 
-            variant="contained" 
-            color="error"
-            href="tel:112"
-          >
-            Call Now
-          </Button>
-        </Paper>
-      </Box>
-      
-      <EmergencyServices 
+        </p>
+
+        <Card className="p-4 bg-destructive/10 border-destructive/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <AlertTriangle className="mr-2 h-5 w-5 text-destructive" />
+              <p className="font-medium">
+                In case of emergency, call the national emergency number: <strong>112</strong>
+              </p>
+            </div>
+
+            <Button
+              variant="destructive"
+              onClick={() => window.location.href = 'tel:112'}
+            >
+              <Phone className="mr-2 h-4 w-4" />
+              Call Now
+            </Button>
+          </div>
+        </Card>
+      </div>
+
+      <EmergencyServices
         initialLocation={userLocation || undefined}
         onServiceSelect={handleServiceSelect}
         onEmergencyTrigger={handleEmergencyTrigger}
       />
-    </Container>
+    </div>
   );
 }

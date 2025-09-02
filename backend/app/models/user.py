@@ -1,50 +1,64 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum as SQLAlchemyEnum
+from sqlalchemy import Column, String, Boolean, DateTime, Integer, Enum
 from sqlalchemy.orm import relationship
 from app.db.session import Base
-import enum
 from datetime import datetime
+from app.models.models import UserType, Language, TimePreference  # Import enums from models.py
 
-class UserRole(str, enum.Enum):
-    USER = "user"
-    ADMIN = "admin"
-    PREMIUM = "premium"
-    TRUSTED_REPORTER = "trusted_reporter"
-    CIVIC_PARTNER = "civic_partner"
-    SUPER_ADMIN = "super_admin"
 
+# User model that matches the actual database schema
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    first_name = Column(String, index=True)
-    last_name = Column(String, index=True)
-    display_name = Column(String, index=True)
     phone = Column(String, nullable=True)
-    avatar = Column(String, nullable=True)
-    user_type = Column(String, default="pedestrian")  # pedestrian, two_wheeler, cyclist, public_transport
-    role = Column(SQLAlchemyEnum(UserRole), default=UserRole.USER)
-    email_verified = Column(Boolean, default=False)
-    language = Column(String, default="en")  # en, ta, hi
+    password_hash = Column(String, nullable=False)
+    
+    # Profile
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
+    display_name = Column(String, nullable=True)
+    avatar = Column(String, nullable=True)  # Changed from avatar_url to avatar to match DB
+    date_of_birth = Column(DateTime, nullable=True)
+    gender = Column(String, nullable=True)
+    language = Column(Enum(Language), default=Language.ENGLISH)
+    timezone = Column(String, default="Asia/Kolkata")
+    
+    # Location
     city = Column(String, nullable=True)
     state = Column(String, nullable=True)
     country = Column(String, default="India")
-    subscription_plan = Column(String, default="free")  # free, premium, enterprise
-    subscription_status = Column(String, default="active")  # active, cancelled, expired, trial
+    
+    # Authentication
+    email_verified = Column(Boolean, default=False)
+    # REMOVED: email_verified_at column as it doesn't exist in the database
+    # REMOVED: two_factor_enabled column as it doesn't exist in the database
+    # REMOVED: two_factor_secret column as it doesn't exist in the database
+    # REMOVED: backup_codes column as it doesn't exist in the database
+    # REMOVED: last_password_change column as it doesn't exist in the database
+    # REMOVED: login_attempts column as it doesn't exist in the database
+    # REMOVED: locked_until column as it doesn't exist in the database
+    
+    # DPDP Compliance
     data_processing_consent = Column(Boolean, default=False)
-    consent_date = Column(DateTime, nullable=True)
     consent_version = Column(String, default="1.0")
-    location_sharing_level = Column(String, default="coarse")  # precise, coarse, city_only
+    consent_date = Column(DateTime, nullable=True)
+    data_retention_expiry = Column(DateTime, nullable=True)
+    
+    # SafeRoute Profile
+    user_type = Column(Enum(UserType), default=UserType.PEDESTRIAN)
+    risk_tolerance = Column(Integer, default=50)  # 0-100
+    time_preference = Column(Enum(TimePreference), default=TimePreference.SAFETY_FIRST)
+    
+    # Additional fields from the schema
+    role = Column(String, default="user")
+    subscription_plan = Column(String, default="free")
+    subscription_status = Column(String, default="active")
+    location_sharing_level = Column(String, default="coarse")
     crowdsourcing_participation = Column(Boolean, default=True)
     personalized_recommendations = Column(Boolean, default=True)
-    analytics_consent = Column(Boolean, default=False)
-    marketing_consent = Column(Boolean, default=False)
-    risk_tolerance = Column(Integer, default=50)  # 0-100
-    time_preference = Column(String, default="safety_first")  # safety_first, balanced, time_first
+    analytics_concent = Column(Boolean, default=False)
+    marketing_concent = Column(Boolean, default=False)
     last_login_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    login_attempts = Column(Integer, default=0)
-    locked_until = Column(DateTime, nullable=True)
-    data_retention_expiry = Column(DateTime, nullable=True)

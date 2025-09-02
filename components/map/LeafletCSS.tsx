@@ -18,7 +18,6 @@ export default function LeafletCSS() {
       // Use dynamic import with proper error handling
       const loadLeaflet = async () => {
         try {
-          // @ts-ignore - Leaflet types not available
           const L = await import(/* webpackChunkName: "leaflet" */ "leaflet");
           const leaflet = L.default || L;
           delete (leaflet as any).Icon.Default.prototype._getIconUrl;

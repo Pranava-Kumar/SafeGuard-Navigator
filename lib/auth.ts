@@ -1,10 +1,10 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import { db } from './db';
 import { z } from 'zod';
 
 // Environment variables validation
-const JWT_SECRET = process.env.JWT_SECRET || 'saferoute-jwt-secret-key-change-in-production';
+const JWT_SECRET: jwt.Secret = process.env.JWT_SECRET || 'saferoute-jwt-secret-key-change-in-production';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 const BCRYPT_ROUNDS = 12;
 
@@ -79,7 +79,7 @@ export function generateToken(userId: string): string {
   return jwt.sign(
     { userId, type: 'access' },
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions
   );
 }
 
@@ -296,12 +296,15 @@ export async function registerUser(data: RegisterData): Promise<AuthResponse> {
     console.error('Registration error:', error);
     
     if (error instanceof z.ZodError) {
-      const errors = error.errors.reduce((acc, err) => {
-        if (err.path.length > 0) {
-          acc[err.path[0]] = err.message;
+      const errors: Record<string, string> = {};
+      error.issues.forEach((issue) => {
+        if (issue.path.length > 0) {
+          const key = issue.path[0];
+          if (typeof key === 'string') {
+            errors[key] = issue.message;
+          }
         }
-        return acc;
-      }, {} as Record<string, string>);
+      });
       
       return {
         success: false,
@@ -402,12 +405,15 @@ export async function loginUser(data: LoginData): Promise<AuthResponse> {
     console.error('Login error:', error);
     
     if (error instanceof z.ZodError) {
-      const errors = error.errors.reduce((acc, err) => {
-        if (err.path.length > 0) {
-          acc[err.path[0]] = err.message;
+      const errors: Record<string, string> = {};
+      error.issues.forEach((issue) => {
+        if (issue.path.length > 0) {
+          const key = issue.path[0];
+          if (typeof key === 'string') {
+            errors[key] = issue.message;
+          }
         }
-        return acc;
-      }, {} as Record<string, string>);
+      });
       
       return {
         success: false,

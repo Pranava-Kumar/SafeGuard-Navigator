@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { AuthService } from '@/lib/auth/authService';
+import { authService } from '@/lib/auth/authService';
 import { authMiddleware } from '@/lib/auth/authMiddleware';
 
 // Validation schema for data export request

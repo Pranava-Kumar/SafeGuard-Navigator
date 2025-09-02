@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapPin, AlertTriangle, Camera, Clock, User, Phone, MessageSquare } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface IncidentReportModalProps {
   isOpen: boolean;
@@ -259,9 +260,9 @@ export default function IncidentReportModal({ isOpen, onClose, location, onSaveR
 
           {/* Submit Buttons */}
           <div className="flex gap-2">
-            <Button 
-              onClick={handleSubmit} 
-              className="flex-1" 
+            <Button
+              onClick={handleSubmit}
+              className="flex-1"
               disabled={isSubmitting || !formData.type || !formData.description}
             >
               {isSubmitting ? (

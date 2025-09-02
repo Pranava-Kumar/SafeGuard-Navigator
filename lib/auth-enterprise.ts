@@ -161,19 +161,19 @@ class EnterpriseAuth {
     };
 
     const accessToken = jwt.sign(payload, this.JWT_SECRET, {
-      expiresIn: this.JWT_EXPIRES_IN,
+      expiresIn: this.JWT_EXPIRES_IN as string,
       issuer: 'saferoute-auth',
       audience: 'saferoute-app'
-    });
+    } as jwt.SignOptions);
 
     const refreshToken = jwt.sign(
       { sessionId: session.id, userId: user.id },
       this.JWT_REFRESH_SECRET,
       {
-        expiresIn: this.JWT_REFRESH_EXPIRES_IN,
+        expiresIn: this.JWT_REFRESH_EXPIRES_IN as string,
         issuer: 'saferoute-auth',
         audience: 'saferoute-app'
-      }
+      } as jwt.SignOptions
     );
 
     // Cache session in Redis
@@ -240,7 +240,11 @@ class EnterpriseAuth {
       }
 
       // Generate new tokens
-      return this.generateTokens(session.user, session.deviceId, session.ipAddress);
+      return this.generateTokens(
+        session.user, 
+        session.deviceId || undefined, 
+        session.ipAddress || undefined
+      );
     } catch (error) {
       console.error('Token refresh failed:', error);
       return null;
@@ -282,7 +286,7 @@ class EnterpriseAuth {
     const user = await db.user.create({
       data: {
         email: data.email.toLowerCase(),
-        passwordHash,
+        password: passwordHash,
         firstName: data.firstName,
         lastName: data.lastName,
         displayName: `${data.firstName} ${data.lastName}`,
@@ -355,7 +359,7 @@ class EnterpriseAuth {
     }
 
     // Verify password
-    const isPasswordValid = await this.verifyPassword(data.password, user.passwordHash);
+    const isPasswordValid = await this.verifyPassword(data.password, user.password);
 
     if (!isPasswordValid) {
       // Increment login attempts
@@ -478,8 +482,8 @@ class EnterpriseAuth {
         userId,
         action,
         resource,
-        ipAddress,
-        userAgent,
+        ...(ipAddress && { ipAddress }),
+        ...(userAgent && { userAgent }),
         metadata: metadata ? JSON.stringify(metadata) : null
       }
     });

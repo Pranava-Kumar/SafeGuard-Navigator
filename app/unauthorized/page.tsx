@@ -27,7 +27,7 @@ export default function UnauthorizedPage() {
           </div>
           <CardTitle className="text-2xl">Access Denied</CardTitle>
           <CardDescription>
-            You don't have permission to access this resource.
+            You don&#39;t have permission to access this resource.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

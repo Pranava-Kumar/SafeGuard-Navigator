@@ -21,6 +21,36 @@ interface OSMResponse {
   }>;
 }
 
+// New interface for POI data
+interface POIData {
+  id: string;
+  name: string;
+  category: string;
+  latitude: number;
+  longitude: number;
+  address: string;
+  phone: string | null;
+  website: string | null;
+  hours: string | null;
+  isEmergencyService: boolean;
+  dataSource: string;
+  lastUpdated: Date;
+  isActive: boolean;
+}
+
+interface LightingData {
+  latitude: number;
+  longitude: number;
+  lightType?: string;
+  municipalStatus?: string;
+  coverage?: number;
+  source: string;
+  timestamp: Date;
+  viirsBrightness?: number;
+  crowdsourcedReports?: number;
+  averageRating?: number;
+}
+
 interface WeatherResponse {
   main: {
     temp: number;
@@ -48,6 +78,41 @@ interface VIIRSDataPoint {
   confidence: number;
 }
 
+interface WeatherAlert {
+  type: string;
+  description: string;
+  severity: string;
+  startTime: Date;
+  endTime: Date;
+}
+
+interface WeatherData {
+  temperature: number;
+  humidity: number;
+  visibility: number;
+  windSpeed: number;
+  pressure: number;
+  description: string;
+  alerts: WeatherAlert[]; // Would be populated from alerts API
+  source: string;
+  timestamp: Date;
+}
+
+interface DarkSpotData {
+  latitude: number;
+  longitude: number;
+  city: string;
+  state: string;
+  spotType: string;
+  severity: number;
+  description: string;
+  municipalId: string;
+  status: string;
+  source: string;
+  reportedBy?: string;
+  lastVerified?: Date;
+}
+
 /**
  * OpenStreetMap Data Integration
  * Fetches POI data, infrastructure, and safety-relevant features
@@ -55,7 +120,7 @@ interface VIIRSDataPoint {
 export class OSMDataService {
   private readonly baseUrl = 'https://overpass-api.de/api/interpreter';
 
-  async fetchPOIData(lat: number, lng: number, radius: number = 1000): Promise<any[]> {
+  async fetchPOIData(lat: number, lng: number, radius: number = 1000): Promise<POIData[]> {
     try {
       const query = `
         [out:json][timeout:25];
@@ -96,12 +161,11 @@ export class OSMDataService {
         latitude: element.lat || lat,
         longitude: element.lon || lng,
         address: this.formatAddress(element.tags),
-        phone: element.tags?.phone,
-        website: element.tags?.website,
-        businessHours: element.tags?.opening_hours,
+        phone: element.tags?.phone || null,
+        website: element.tags?.website || null,
+        hours: element.tags?.opening_hours || null,
         isEmergencyService: this.isEmergencyService(element.tags),
-        footfallDensity: this.estimateFootfall(element.tags),
-        source: 'osm',
+        dataSource: 'osm',
         lastUpdated: new Date(),
         isActive: true
       }));
@@ -181,18 +245,23 @@ export class OSMDataService {
     return footfallMap[tags.amenity || tags.shop || tags.tourism] || 50;
   }
 
-  private generateFallbackPOIData(lat: number, lng: number, radius: number): any[] {
+  private generateFallbackPOIData(lat: number, lng: number, radius: number): POIData[] {
     // Generate synthetic POI data for testing when OSM is unavailable
-    const fallbackPOIs = [
+    const fallbackPOIs: POIData[] = [
       {
         id: 'fallback_police_1',
         name: 'Local Police Station',
         category: 'police',
         latitude: lat + 0.002,
         longitude: lng + 0.002,
+        address: '',
+        phone: null,
+        website: null,
+        hours: null,
         isEmergencyService: true,
-        footfallDensity: 50,
-        source: 'fallback'
+        dataSource: 'fallback',
+        lastUpdated: new Date(),
+        isActive: true
       },
       {
         id: 'fallback_hospital_1',
@@ -200,9 +269,14 @@ export class OSMDataService {
         category: 'hospital',
         latitude: lat - 0.003,
         longitude: lng + 0.001,
+        address: '',
+        phone: null,
+        website: null,
+        hours: null,
         isEmergencyService: true,
-        footfallDensity: 200,
-        source: 'fallback'
+        dataSource: 'fallback',
+        lastUpdated: new Date(),
+        isActive: true
       },
       {
         id: 'fallback_restaurant_1',
@@ -210,24 +284,21 @@ export class OSMDataService {
         category: 'restaurant',
         latitude: lat + 0.001,
         longitude: lng - 0.001,
+        address: '',
+        phone: null,
+        website: null,
+        hours: null,
         isEmergencyService: false,
-        footfallDensity: 100,
-        source: 'fallback'
+        dataSource: 'fallback',
+        lastUpdated: new Date(),
+        isActive: true
       }
     ];
 
-    return fallbackPOIs.map(poi => ({
-      ...poi,
-      address: '',
-      phone: null,
-      website: null,
-      businessHours: null,
-      lastUpdated: new Date(),
-      isActive: true
-    }));
+    return fallbackPOIs;
   }
 
-  async fetchLightingInfrastructure(lat: number, lng: number, radius: number = 500): Promise<any[]> {
+  async fetchLightingInfrastructure(lat: number, lng: number, radius: number = 500): Promise<LightingData[]> {
     try {
       const query = `
         [out:json][timeout:25];
@@ -268,8 +339,8 @@ export class OSMDataService {
     }
   }
 
-  private generateFallbackLightingData(lat: number, lng: number): any[] {
-    const lights = [];
+  private generateFallbackLightingData(lat: number, lng: number): LightingData[] {
+    const lights: LightingData[] = [];
     // Generate a grid of street lights around the location
     for (let i = -2; i <= 2; i++) {
       for (let j = -2; j <= 2; j++) {
@@ -293,11 +364,17 @@ export class OSMDataService {
  * Integrates with OpenWeatherMap API for current conditions
  */
 export class WeatherDataService {
-  private readonly apiKey = process.env.OPENWEATHER_API_KEY || 'demo_key';
+  private readonly apiKey = process.env.WEATHER_API_KEY || process.env.OPENWEATHER_API_KEY || '';
   private readonly baseUrl = 'https://api.openweathermap.org/data/2.5';
 
-  async getCurrentWeather(lat: number, lng: number): Promise<any> {
+  async getCurrentWeather(lat: number, lng: number): Promise<WeatherData> {
     try {
+      // If no API key is provided, use fallback data
+      if (!this.apiKey) {
+        console.warn('No weather API key provided, using fallback data');
+        return this.generateFallbackWeatherData();
+      }
+
       const response = await fetch(
         `${this.baseUrl}/weather?lat=${lat}&lon=${lng}&appid=${this.apiKey}&units=metric`
       );
@@ -327,7 +404,7 @@ export class WeatherDataService {
     }
   }
 
-  private generateFallbackWeatherData(): any {
+  private generateFallbackWeatherData(): WeatherData {
     return {
       temperature: 25 + Math.random() * 10, // 25-35°C typical for India
       humidity: 60 + Math.random() * 30, // 60-90%
@@ -398,7 +475,7 @@ export class VIIRSDataService {
  * In production, this would integrate with city/municipal APIs
  */
 export class MunicipalDataService {
-  async getDarkSpotData(city: string, state: string = 'Tamil Nadu'): Promise<any[]> {
+  async getDarkSpotData(city: string, state: string = 'Tamil Nadu'): Promise<DarkSpotData[]> {
     try {
       // Simulate official dark spot data
       return this.generateDarkSpotData(city, state);
@@ -408,9 +485,9 @@ export class MunicipalDataService {
     }
   }
 
-  private generateDarkSpotData(city: string, state: string): any[] {
+  private generateDarkSpotData(city: string, state: string): DarkSpotData[] {
     // Simulate realistic dark spot data based on Chennai's known issues
-    const darkSpots = [
+    const darkSpots: DarkSpotData[] = [
       {
         latitude: 13.0827 + Math.random() * 0.01,
         longitude: 80.2707 + Math.random() * 0.01,
@@ -444,7 +521,8 @@ export class MunicipalDataService {
         severity: 2,
         description: 'Dim lighting near bus stop',
         status: 'active',
-        source: 'crowdsourced'
+        source: 'crowdsourced',
+        municipalId: 'DS003'
       }
     ];
 
@@ -508,7 +586,7 @@ export class DataIntegrationService {
     }
   }
 
-  private async updatePOIData(poiData: any[]): Promise<void> {
+  private async updatePOIData(poiData: POIData[]): Promise<void> {
     for (const poi of poiData) {
       await db.pOIData.upsert({
         where: { id: poi.id },
@@ -517,8 +595,7 @@ export class DataIntegrationService {
           category: poi.category,
           phone: poi.phone,
           website: poi.website,
-          businessHours: poi.businessHours,
-          footfallDensity: poi.footfallDensity,
+          hours: poi.hours,
           lastUpdated: poi.lastUpdated,
           isActive: poi.isActive
         },
@@ -527,76 +604,87 @@ export class DataIntegrationService {
     }
   }
 
-  private async updateLightingData(lightingData: any[], viiirsData: VIIRSDataPoint[]): Promise<void> {
+  private async updateLightingData(lightingData: LightingData[], viiirsData: VIIRSDataPoint[]): Promise<void> {
     // Update infrastructure lighting
     for (const light of lightingData) {
-      await db.lightingData.create({
+      // Since there's no dedicated LightingData model, we'll store this in SafetyScore
+      await db.safetyScore.create({
         data: {
           latitude: light.latitude,
           longitude: light.longitude,
-          lightType: light.lightType,
-          municipalStatus: light.municipalStatus,
-          coverage: light.coverage,
-          source: light.source,
-          timestamp: light.timestamp
+          overallScore: 50, // Placeholder score
+          lightingData: JSON.stringify({
+            lightType: light.lightType,
+            municipalStatus: light.municipalStatus,
+            coverage: light.coverage,
+          }),
+          sources: light.source,
+          timestamp: light.timestamp,
+          lastUpdated: new Date()
         }
       });
     }
 
     // Update VIIRS satellite data
     for (const viirs of viiirsData) {
-      await db.lightingData.create({
+      await db.safetyScore.create({
         data: {
           latitude: viirs.lat,
           longitude: viirs.lon,
-          viirsBrightness: viirs.brightness,
-          source: 'viirs',
-          timestamp: new Date()
+          overallScore: Math.round(viirs.brightness), // Use brightness as overall score
+          lightingData: JSON.stringify({
+            viirsBrightness: viirs.brightness,
+          }),
+          sources: 'viirs',
+          timestamp: new Date(),
+          lastUpdated: new Date()
         }
       });
     }
   }
 
-  private async updateWeatherData(weatherData: any, area: string): Promise<void> {
-    await db.weatherData.create({
+  private async updateWeatherData(weatherData: WeatherData, area: string): Promise<void> {
+    // Since there's no dedicated WeatherData model, we'll store this in SafetyScore
+    await db.safetyScore.create({
       data: {
-        area,
-        temperature: weatherData.temperature,
-        humidity: weatherData.humidity,
-        visibility: weatherData.visibility,
-        weatherCondition: weatherData.weatherCondition,
-        windSpeed: weatherData.windSpeed,
-        pressure: weatherData.pressure,
-        alerts: JSON.stringify(weatherData.alerts),
-        source: weatherData.source,
-        timestamp: weatherData.timestamp
+        latitude: 0, // Placeholder - would need actual coordinates
+        longitude: 0, // Placeholder - would need actual coordinates
+        overallScore: Math.round(100 - weatherData.visibility * 2), // Inverse of visibility
+        lightingScore: Math.round(weatherData.visibility * 10), // Use visibility as a proxy
+        hazardScore: weatherData.weatherCondition.includes('rain') ? 30 : 10, // Simple proxy
+        sources: weatherData.source,
+        factors: JSON.stringify({
+          temperature: weatherData.temperature,
+          humidity: weatherData.humidity,
+          visibility: weatherData.visibility,
+          weatherCondition: weatherData.weatherCondition,
+          windSpeed: weatherData.windSpeed,
+          pressure: weatherData.pressure,
+        }),
+        timestamp: weatherData.timestamp,
+        lastUpdated: new Date()
       }
     });
   }
 
-  private async updateDarkSpotData(darkSpotData: any[]): Promise<void> {
+  private async updateDarkSpotData(darkSpotData: DarkSpotData[]): Promise<void> {
     for (const spot of darkSpotData) {
-      await db.darkSpotData.upsert({
-        where: { 
-          municipalId: spot.municipalId || `generated_${spot.latitude}_${spot.longitude}` 
-        },
-        update: {
-          status: spot.status,
-          lastVerified: spot.lastVerified
-        },
-        create: {
+      // Since there's no dedicated DarkSpotData model, we'll store this in SafetyScore
+      await db.safetyScore.create({
+        data: {
           latitude: spot.latitude,
           longitude: spot.longitude,
-          city: spot.city,
-          state: spot.state,
-          spotType: spot.spotType,
-          severity: spot.severity,
-          description: spot.description,
-          reportedBy: spot.reportedBy,
-          status: spot.status,
-          municipalId: spot.municipalId,
-          lastVerified: spot.lastVerified,
-          source: spot.source
+          overallScore: 100 - (spot.severity * 20), // Inverse of severity (1-5 mapped to 80-0)
+          hazardScore: spot.severity * 20, // Map severity 1-5 to 20-100
+          sources: spot.source,
+          factors: JSON.stringify({
+            spotType: spot.spotType,
+            description: spot.description,
+            status: spot.status,
+            reportedBy: spot.reportedBy,
+          }),
+          timestamp: spot.lastVerified || new Date(),
+          lastUpdated: new Date()
         }
       });
     }
@@ -631,6 +719,3 @@ export class DataIntegrationService {
 
 // Export singleton instance
 export const dataIntegration = new DataIntegrationService();
-
-// Export individual services for direct use
-export { OSMDataService, WeatherDataService, VIIRSDataService, MunicipalDataService };

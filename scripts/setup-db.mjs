@@ -93,7 +93,7 @@ async function setupDatabase() {
       } else {
         console.log('PostGIS extension is already enabled.');
       }
-    } catch (error) {
+    } catch {
       console.log('PostGIS extension not available. Skipping...');
     }
     

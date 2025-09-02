@@ -143,7 +143,7 @@ export async function GET(req: NextRequest) {
         longitude: service.longitude,
       },
       distance: service.distance,
-      operatingHours: service.businessHours,
+      operatingHours: service.hours,
       website: service.website,
       services: [], // Placeholder
       rating: service.safetyRating,

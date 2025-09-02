@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { authRateLimit } from '@/lib/ratelimit';
-import { AuthService } from '@/lib/auth/authService';
+import { authService } from '@/lib/auth/authService';
 
 // Validation schema for login
 const loginSchema = z.object({
@@ -16,10 +16,15 @@ const loginSchema = z.object({
   rememberMe: z.boolean().optional().default(false)
 });
 
+// Helper function to get client IP
+function getClientIP(request: NextRequest): string {
+  return request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting
-    const identifier = request.ip || request.headers.get('x-forwarded-for') || 'anonymous';
+    const identifier = getClientIP(request) || 'anonymous';
     const rateLimitResult = await authRateLimit.login(identifier);
     
     if (!rateLimitResult.success) {
@@ -52,14 +57,14 @@ export async function POST(request: NextRequest) {
     const data = validationResult.data;
     
     // Get client information for audit logging
-    const ipAddress = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+    const ipAddress = getClientIP(request) || 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
     // Initialize AuthService
-    const authService = new AuthService();
+    const authServiceInstance = authService;
 
     // Authenticate user
-    const authResult = await authService.login({
+    const authResult = await authServiceInstance.login({
       email: data.email,
       password: data.password,
       deviceId: data.deviceId,

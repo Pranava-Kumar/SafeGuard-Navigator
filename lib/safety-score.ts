@@ -94,14 +94,30 @@ export async function calculateLightingScore(
 ): Promise<{ score: number; data: SafetyFactors['lighting']['data'] }> {
   try {
     // Get lighting data from database
-    const lightingData = await db.lightingData.findMany({
+    // Since there's no dedicated lightingData model, we query SafetyScore records that contain lighting data
+    const lightingDataRecords = await db.safetyScore.findMany({
       where: {
         latitude: { gte: latitude - 0.001, lte: latitude + 0.001 },
-        longitude: { gte: longitude - 0.001, lte: longitude + 0.001 }
+        longitude: { gte: longitude - 0.001, lte: longitude + 0.001 },
+        AND: [
+          { lightingData: { not: null } },
+          { lightingData: { not: '' } }
+        ]
       },
       orderBy: { timestamp: 'desc' },
       take: 10
     });
+
+    // Parse the lighting data from the JSON field
+    const lightingData = lightingDataRecords
+      .map(record => {
+        try {
+          return JSON.parse(record.lightingData || '{}');
+        } catch (e) {
+          return {};
+        }
+      })
+      .filter(data => Object.keys(data).length > 0);
 
     let baseScore = 50; // Default neutral score
     let viirsBrightness = 0;
@@ -111,7 +127,7 @@ export async function calculateLightingScore(
 
     if (lightingData.length > 0) {
       // Average VIIRS brightness from nearby points
-      const viiirsPoints = lightingData.filter(d => d.viirsBrightness !== null);
+      const viiirsPoints = lightingData.filter(d => d.viirsBrightness !== undefined);
       if (viiirsPoints.length > 0) {
         viirsBrightness = viiirsPoints.reduce((sum, d) => sum + (d.viirsBrightness || 0), 0) / viiirsPoints.length;
         baseScore += Math.min(30, viirsBrightness * 2); // VIIRS contributes up to 30 points
@@ -120,7 +136,7 @@ export async function calculateLightingScore(
       // Municipal status
       const workingLights = lightingData.filter(d => d.municipalStatus === 'working').length;
       const totalLights = lightingData.length;
-      const workingRatio = workingLights / totalLights;
+      const workingRatio = totalLights > 0 ? workingLights / totalLights : 0;
       
       if (workingRatio >= 0.8) municipalStatus = 'working';
       else if (workingRatio >= 0.5) municipalStatus = 'partial';
@@ -129,15 +145,15 @@ export async function calculateLightingScore(
       baseScore += workingRatio * 25; // Municipal status contributes up to 25 points
 
       // Crowdsourced reports
-      crowdsourcedReports = lightingData.reduce((sum, d) => sum + d.crowdsourcedReports, 0);
+      crowdsourcedReports = lightingData.reduce((sum, d) => sum + (d.crowdsourcedReports || 0), 0);
       const avgRating = lightingData
-        .filter(d => d.averageRating !== null)
+        .filter(d => d.averageRating !== undefined)
         .reduce((sum, d, _, arr) => sum + (d.averageRating || 0) / arr.length, 0);
       
       baseScore += avgRating * 2; // User ratings contribute up to 10 points (5-star system)
 
       // Street light density
-      streetLightDensity = lightingData.filter(d => d.lightType !== null).length;
+      streetLightDensity = lightingData.filter(d => d.lightType !== undefined).length;
       baseScore += Math.min(10, streetLightDensity * 2);
     }
 
@@ -255,8 +271,8 @@ export async function calculateFootfallScore(
 
     const adjustedScore = Math.max(0, Math.min(100, baseScore * timeBasedActivity));
 
-    // Calculate population density estimate
-    const populationDensity = poiData.reduce((sum, poi) => sum + (poi.footfallDensity || 0), 0);
+    // Calculate population density estimate (using reviewCount as a proxy for footfall)
+    const populationDensity = poiData.reduce((sum, poi) => sum + (poi.reviewCount || 0), 0);
 
     return {
       score: Math.round(adjustedScore),
@@ -315,15 +331,30 @@ export async function calculateHazardScore(
     hazardScore += severityWeight * 2; // Severity multiplier
 
     // Infrastructure issues from dark spots
-    const darkSpots = await db.darkSpotData.findMany({
+    // Since there's no dedicated darkSpotData model, we query SafetyScore records that might contain dark spot data
+    // Based on the data-integration.ts file, dark spot data is stored in the factors field
+    const safetyScoresWithFactors = await db.safetyScore.findMany({
       where: {
         latitude: { gte: latitude - radius, lte: latitude + radius },
         longitude: { gte: longitude - radius, lte: longitude + radius },
-        status: 'active'
+        factors: { not: null },
+        hazardScore: { gt: 0 } // Look for records that have hazard data
       }
     });
     
-    const infrastructureIssues = darkSpots.length;
+    // Extract dark spot information from factors
+    let infrastructureIssues = 0;
+    safetyScoresWithFactors.forEach(record => {
+      try {
+        const factors = JSON.parse(record.factors || '{}');
+        if (factors.spotType && factors.status === 'active') {
+          infrastructureIssues++;
+        }
+      } catch (e) {
+        // Ignore parsing errors
+      }
+    });
+    
     hazardScore += infrastructureIssues * 8; // Dark spots are significant hazards
 
     // Weather hazards from current conditions
@@ -625,14 +656,14 @@ export async function getSafetyScore(
     if (cachedScore) {
       return {
         overall: cachedScore.overallScore,
-        factors: JSON.parse(cachedScore.factors),
+        factors: cachedScore.factors ? JSON.parse(cachedScore.factors) : {},
         contextualFactors: {
-          timeOfDay: cachedScore.timeOfDay as any,
-          userType: cachedScore.userType as any
+          timeOfDay: (cachedScore.timeOfDay as 'morning' | 'afternoon' | 'evening' | 'night') || 'afternoon',
+          userType: (cachedScore.userType as 'pedestrian' | 'two_wheeler' | 'cyclist' | 'public_transport') || 'pedestrian'
         },
-        confidence: cachedScore.confidence,
+        confidence: cachedScore.confidence || 0,
         lastUpdated: cachedScore.timestamp,
-        sources: JSON.parse(cachedScore.sources)
+        sources: cachedScore.sources ? JSON.parse(cachedScore.sources) : []
       };
     }
 

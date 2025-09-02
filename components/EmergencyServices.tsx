@@ -14,34 +14,55 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  LocalHospital,
-  LocalPolice,
-  Fireplace,
+import {
+  Hospital,
+  Shield,
+  Flame,
   Phone,
-  DirectionsCar,
-  MyLocation,
-  LocationOn,
+  Car,
+  MapPin,
+  Locate,
   Info,
   Star,
-  StarBorder,
-  Directions,
+  StarOff,
+  Navigation,
   Share,
   Search,
-  Close,
-  Add,
-  Edit,
-  Delete,
-  Call,
-  Message,
-  AccessTime,
-  Public,
-  Warning,
-  ContactPhone,
-  ContactEmergency,
-  Refresh,
-  ArrowBack
+  X,
+  Plus,
+  Pencil,
+  Trash2,
+  PhoneCall,
+  MessageCircle,
+  Clock,
+  Globe,
+  AlertTriangle,
+  PhoneForwarded,
+  PhoneIncoming,
+  RotateCcw,
+  ArrowLeft,
+  AlertCircle,
+  LocateFixed
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
+import { toast } from "@/components/ui/sonner"
 
 // Interfaces
 interface EmergencyService {
@@ -83,7 +104,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
   onEmergencyTrigger
 }) => {
   const router = useRouter();
-  
+
   // State variables
   const [location, setLocation] = useState<[number, number] | null>(
     initialLocation || null
@@ -111,24 +132,24 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>('');
   const [radius, setRadius] = useState<number>(5); // in kilometers
-  
+
   // Service type filters
   const serviceTypes = [
     { value: 'all', label: 'All Services', icon: <Info /> },
-    { value: 'hospital', label: 'Hospitals', icon: <LocalHospital /> },
-    { value: 'police', label: 'Police Stations', icon: <LocalPolice /> },
-    { value: 'fire', label: 'Fire Stations', icon: <Fireplace /> },
-    { value: 'ambulance', label: 'Ambulance Services', icon: <DirectionsCar /> },
-    { value: 'women_helpline', label: 'Women Helplines', icon: <ContactPhone /> },
-    { value: 'roadside', label: 'Roadside Assistance', icon: <DirectionsCar /> },
-    { value: 'disaster', label: 'Disaster Management', icon: <Warning /> },
+    { value: 'hospital', label: 'Hospitals', icon: <Hospital /> },
+    { value: 'police', label: 'Police Stations', icon: <Shield /> },
+    { value: 'fire', label: 'Fire Stations', icon: <Flame /> },
+    { value: 'ambulance', label: 'Ambulance Services', icon: <Car /> },
+    { value: 'women_helpline', label: 'Women Helplines', icon: <Phone /> },
+    { value: 'roadside', label: 'Roadside Assistance', icon: <Car /> },
+    { value: 'disaster', label: 'Disaster Management', icon: <AlertTriangle /> },
   ];
-  
+
   // Fetch user's current location
   const getCurrentLocation = () => {
     setLoading(true);
     setError(null);
-    
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -144,7 +165,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
           console.error('Error getting location:', err);
           setError('Could not get your location. Please check your browser permissions.');
           setLoading(false);
-          
+
           // If initial location is provided, use it as fallback
           if (initialLocation) {
             setLocation(initialLocation);
@@ -155,7 +176,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
     } else {
       setError('Geolocation is not supported by your browser.');
       setLoading(false);
-      
+
       // If initial location is provided, use it as fallback
       if (initialLocation) {
         setLocation(initialLocation);
@@ -163,21 +184,21 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       }
     }
   };
-  
+
   // Fetch nearby emergency services
   const fetchNearbyServices = async (location: [number, number], radius: number) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await fetch(
         `/api/emergency/services?lat=${location[0]}&lng=${location[1]}&radius=${radius}`
       );
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch emergency services');
       }
-      
+
       const data: { services: EmergencyService[] } = await response.json();
       setServices(data.services);
       setLoading(false);
@@ -191,19 +212,19 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       setLoading(false);
     }
   };
-  
+
   // Fetch user's emergency contacts
   const fetchEmergencyContacts = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await fetch('/api/emergency/contact');
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch emergency contacts');
       }
-      
+
       const data: { contacts: EmergencyContact[] } = await response.json();
       setContacts(data.contacts);
       setLoading(false);
@@ -217,26 +238,26 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       setLoading(false);
     }
   };
-  
+
   // Add emergency contact
   const addEmergencyContact = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Validate form
       if (!newContact.name.trim()) {
         setError('Name is required');
         setLoading(false);
         return;
       }
-      
+
       if (!newContact.phone.trim()) {
         setError('Phone number is required');
         setLoading(false);
         return;
       }
-      
+
       // Add contact
       const response = await fetch('/api/emergency/contact', {
         method: 'POST',
@@ -245,11 +266,11 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
         },
         body: JSON.stringify(newContact)
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to add emergency contact');
       }
-      
+
       // Reset form and close dialog
       setNewContact({
         name: '',
@@ -257,16 +278,16 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
         relationship: '',
         priority: 1
       });
-      
+
       setShowAddContactDialog(false);
-      
+
       // Refresh contacts
       fetchEmergencyContacts();
-      
+
       // Show success message
       setSnackbarMessage('Emergency contact added successfully');
       setSnackbarOpen(true);
-      
+
       setLoading(false);
     } catch (err: unknown) {
       console.error('Error adding emergency contact:', err);
@@ -278,28 +299,28 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       setLoading(false);
     }
   };
-  
+
   // Update emergency contact
   const updateEmergencyContact = async () => {
     try {
       if (!editContact) return;
-      
+
       setLoading(true);
       setError(null);
-      
+
       // Validate form
       if (!editContact.name.trim()) {
         setError('Name is required');
         setLoading(false);
         return;
       }
-      
+
       if (!editContact.phone.trim()) {
         setError('Phone number is required');
         setLoading(false);
         return;
       }
-      
+
       // Update contact
       const response = await fetch(`/api/emergency/contact/${editContact.id}`, {
         method: 'PUT',
@@ -313,22 +334,22 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
           priority: editContact.priority
         })
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to update emergency contact');
       }
-      
+
       // Reset form and close dialog
       setEditContact(null);
       setShowEditContactDialog(false);
-      
+
       // Refresh contacts
       fetchEmergencyContacts();
-      
+
       // Show success message
       setSnackbarMessage('Emergency contact updated successfully');
       setSnackbarOpen(true);
-      
+
       setLoading(false);
     } catch (err: unknown) {
       console.error('Error updating emergency contact:', err);
@@ -340,35 +361,35 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       setLoading(false);
     }
   };
-  
+
   // Delete emergency contact
   const deleteEmergencyContact = async () => {
     try {
       if (!deleteContact) return;
-      
+
       setLoading(true);
       setError(null);
-      
+
       // Delete contact
       const response = await fetch(`/api/emergency/contact/${deleteContact.id}`, {
         method: 'DELETE'
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to delete emergency contact');
       }
-      
+
       // Reset form and close dialog
       setDeleteContact(null);
       setShowDeleteContactDialog(false);
-      
+
       // Refresh contacts
       fetchEmergencyContacts();
-      
+
       // Show success message
       setSnackbarMessage('Emergency contact deleted successfully');
       setSnackbarOpen(true);
-      
+
       setLoading(false);
     } catch (err: unknown) {
       console.error('Error deleting emergency contact:', err);
@@ -380,26 +401,26 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       setLoading(false);
     }
   };
-  
+
   // Verify emergency contact
   const verifyEmergencyContact = async (contactId: string) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Verify contact
       const response = await fetch(`/api/emergency/contact/${contactId}/verify`, {
         method: 'POST'
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to send verification code');
       }
-      
+
       // Show success message
       setSnackbarMessage('Verification code sent successfully');
       setSnackbarOpen(true);
-      
+
       setLoading(false);
     } catch (err: unknown) {
       console.error('Error verifying emergency contact:', err);
@@ -411,7 +432,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       setLoading(false);
     }
   };
-  
+
   // Trigger emergency alert
   const triggerEmergencyAlert = async () => {
     try {
@@ -419,10 +440,10 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
         setError('Location is required to trigger emergency alert');
         return;
       }
-      
+
       setLoading(true);
       setError(null);
-      
+
       // Trigger alert
       const response = await fetch('/api/emergency', {
         method: 'POST',
@@ -437,28 +458,28 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
           contactIds: selectedContacts.length > 0 ? selectedContacts : undefined
         })
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to trigger emergency alert');
       }
-      
+
       const data: { alertId: string } = await response.json();
-      
+
       // Reset form and close dialog
       setSelectedContacts([]);
       setShowEmergencyDialog(false);
-      
+
       // Show success message
       setSnackbarMessage('Emergency alert triggered successfully');
       setSnackbarOpen(true);
-      
+
       // Call the onEmergencyTrigger callback if provided
       if (onEmergencyTrigger) {
         onEmergencyTrigger(location, selectedContacts);
       }
-      
+
       setLoading(false);
-      
+
       // Navigate to alert details page
       router.push(`/emergency/alert/${data.alertId}`);
     } catch (err: unknown) {
@@ -471,24 +492,24 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       setLoading(false);
     }
   };
-  
+
   // Toggle favorite service
   const toggleFavoriteService = async (serviceId: string) => {
     try {
       // Find the service
       const service = services.find(s => s.id === serviceId);
       if (!service) return;
-      
+
       // Toggle favorite status
       const updatedService = { ...service, isFavorite: !service.isFavorite };
-      
+
       // Update services list
       setServices(prevServices =>
         prevServices.map(s =>
           s.id === serviceId ? updatedService : s
         )
       );
-      
+
       // Update in backend
       const response = await fetch(`/api/emergency/services/${serviceId}/favorite`, {
         method: 'POST',
@@ -497,7 +518,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
         },
         body: JSON.stringify({ isFavorite: updatedService.isFavorite })
       });
-      
+
       if (!response.ok) {
         // Revert changes if request fails
         setServices(prevServices =>
@@ -517,12 +538,12 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       setSnackbarOpen(true);
     }
   };
-  
+
   // Format phone number for display
   const formatPhoneNumber = (phone: string) => {
     // Remove non-numeric characters
     const cleaned = phone.replace(/\D/g, '');
-    
+
     // Format based on length
     if (cleaned.length === 10) {
       return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
@@ -532,7 +553,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       return phone;
     }
   };
-  
+
   // Calculate distance between two coordinates in kilometers
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371; // Radius of the earth in km
@@ -546,66 +567,66 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
     const distance = R * c; // Distance in km
     return distance;
   };
-  
+
   const deg2rad = (deg: number) => {
     return deg * (Math.PI / 180);
   };
-  
+
   // Get icon for service type
   const getServiceIcon = (type: string) => {
     switch (type) {
       case 'hospital':
-        return <LocalHospital />;
+        return <Hospital />;
       case 'police':
-        return <LocalPolice />;
+        return <Shield />;
       case 'fire':
-        return <Fireplace />;
+        return <Flame />;
       case 'ambulance':
-        return <DirectionsCar />;
+        return <Car />;
       case 'roadside':
-        return <DirectionsCar />;
+        return <Car />;
       case 'women_helpline':
-        return <ContactPhone />;
+        return <Phone />;
       case 'disaster':
-        return <Warning />;
+        return <AlertTriangle />;
       default:
         return <Info />;
     }
   };
-  
+
   // Initialize component
   useEffect(() => {
     getCurrentLocation();
     fetchEmergencyContacts();
   }, []);
-  
+
   // Update services when location or radius changes
   useEffect(() => {
     if (location) {
       fetchNearbyServices(location, radius);
     }
   }, [location, radius]);
-  
+
   // Filter services based on search query and active tab
   const filteredServices = services.filter(service => {
     // Filter by search query
     const matchesSearch = searchQuery
       ? service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        service.address.toLowerCase().includes(searchQuery.toLowerCase())
+      service.address.toLowerCase().includes(searchQuery.toLowerCase())
       : true;
-    
+
     // Filter by service type (tab)
     const serviceType = serviceTypes[activeTab].value;
     const matchesType = serviceType === 'all' || service.type === serviceType;
-    
+
     return matchesSearch && matchesType;
   });
-  
+
   // Sort services by distance
   const sortedServices = [...filteredServices].sort((a, b) => {
     return (a.distance || 0) - (b.distance || 0);
   });
-  
+
   // Render service list
   const renderServiceList = () => {
     if (loading && services.length === 0) {
@@ -618,7 +639,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
         </div>
       );
     }
-    
+
     if (error && services.length === 0) {
       return (
         <Alert variant="destructive">
@@ -626,7 +647,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
         </Alert>
       );
     }
-    
+
     if (sortedServices.length === 0) {
       return (
         <div className="flex flex-col items-center py-8">
@@ -637,7 +658,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
           <p className="text-sm text-muted-foreground mb-4">
             Try increasing the search radius or changing your location
           </p>
-          <Button 
+          <Button
             onClick={() => getCurrentLocation()}
           >
             <Refresh className="mr-2 h-4 w-4" />
@@ -646,29 +667,28 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
         </div>
       );
     }
-    
+
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {sortedServices.map((service) => (
-          <Card 
+          <Card
             key={service.id}
             className="h-full flex flex-col"
           >
             <CardContent className="flex-grow">
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center">
-                  <div className={`rounded-full p-2 mr-2 ${
-                    service.type === 'hospital' ? 'bg-red-500' :
+                  <div className={`rounded-full p-2 mr-2 ${service.type === 'hospital' ? 'bg-red-500' :
                     service.type === 'police' ? 'bg-blue-500' :
-                    service.type === 'fire' ? 'bg-yellow-500' :
-                    'bg-gray-500'
-                  }`}>
+                      service.type === 'fire' ? 'bg-yellow-500' :
+                        'bg-gray-500'
+                    }`}>
                     {getServiceIcon(service.type)}
                   </div>
                   <h4 className="font-semibold">{service.name}</h4>
                 </div>
-                
-                <Button 
+
+                <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => toggleFavoriteService(service.id)}
@@ -676,28 +696,28 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                   {service.isFavorite ? <Star className="h-4 w-4 fill-yellow-500" /> : <StarBorder className="h-4 w-4" />}
                 </Button>
               </div>
-              
-              <Badge 
+
+              <Badge
                 variant="secondary"
                 className="mb-2"
               >
                 {serviceTypes.find(t => t.value === service.type)?.label || service.type}
               </Badge>
-              
+
               <div className="flex items-center mb-1">
                 <LocationOn className="h-4 w-4 mr-1 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">
                   {service.address}
                 </p>
               </div>
-              
+
               <div className="flex items-center mb-1">
                 <Phone className="h-4 w-4 mr-1 text-muted-foreground" />
                 <p className="text-sm">
                   {formatPhoneNumber(service.phone)}
                 </p>
               </div>
-              
+
               {service.operatingHours && (
                 <div className="flex items-center mb-1">
                   <AccessTime className="h-4 w-4 mr-1 text-muted-foreground" />
@@ -706,18 +726,18 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                   </p>
                 </div>
               )}
-              
+
               {service.distance !== undefined && (
                 <div className="flex items-center mb-1">
                   <MyLocation className="h-4 w-4 mr-1 text-muted-foreground" />
                   <p className="text-sm text-muted-foreground">
-                    {service.distance < 1 
-                      ? `${(service.distance * 1000).toFixed(0)} meters away` 
+                    {service.distance < 1
+                      ? `${(service.distance * 1000).toFixed(0)} meters away`
                       : `${service.distance.toFixed(1)} km away`}
                   </p>
                 </div>
               )}
-              
+
               {service.services && service.services.length > 0 && (
                 <div className="mt-2">
                   <p className="text-sm text-muted-foreground mb-1">
@@ -731,9 +751,9 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                 </div>
               )}
             </CardContent>
-            
+
             <div className="flex p-4 pt-0">
-              <Button 
+              <Button
                 size="sm"
                 variant="outline"
                 className="mr-2"
@@ -742,8 +762,8 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                 <Call className="mr-1 h-4 w-4" />
                 Call
               </Button>
-              
-              <Button 
+
+              <Button
                 size="sm"
                 variant="outline"
                 className="mr-2"
@@ -761,8 +781,8 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                 <Directions className="mr-1 h-4 w-4" />
                 Directions
               </Button>
-              
-              <Button 
+
+              <Button
                 size="sm"
                 variant="outline"
                 className="ml-auto"
@@ -777,31 +797,31 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       </div>
     );
   };
-  
+
   // Render service details
   const renderServiceDetails = () => {
     if (!selectedService) return null;
-    
+
     return (
       <Box>
-        <Button 
-          startIcon={<ArrowBack />} 
+        <Button
+          startIcon={<ArrowBack />}
           onClick={() => setSelectedService(null)}
           sx={{ mb: 2 }}
         >
           Back to Services
         </Button>
-        
+
         <Paper sx={{ p: 3, mb: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Avatar 
-                sx={{ 
-                  bgcolor: 
+              <Avatar
+                sx={{
+                  bgcolor:
                     selectedService.type === 'hospital' ? 'error.main' :
-                    selectedService.type === 'police' ? 'primary.main' :
-                    selectedService.type === 'fire' ? 'warning.main' :
-                    'info.main',
+                      selectedService.type === 'police' ? 'primary.main' :
+                        selectedService.type === 'fire' ? 'warning.main' :
+                          'info.main',
                   width: 56,
                   height: 56,
                   mr: 2
@@ -809,35 +829,35 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
               >
                 {getServiceIcon(selectedService.type)}
               </Avatar>
-              
+
               <Box>
                 <Typography variant="h5" gutterBottom>
                   {selectedService.name}
                 </Typography>
-                
-                <Chip 
-                  label={serviceTypes.find(t => t.value === selectedService.type)?.label || selectedService.type} 
+
+                <Chip
+                  label={serviceTypes.find(t => t.value === selectedService.type)?.label || selectedService.type}
                   size="small"
                   color={
                     selectedService.type === 'hospital' ? 'error' :
-                    selectedService.type === 'police' ? 'primary' :
-                    selectedService.type === 'fire' ? 'warning' :
-                    'info'
+                      selectedService.type === 'police' ? 'primary' :
+                        selectedService.type === 'fire' ? 'warning' :
+                          'info'
                   }
                 />
               </Box>
             </Box>
-            
-            <IconButton 
+
+            <IconButton
               onClick={() => toggleFavoriteService(selectedService.id)}
               color={selectedService.isFavorite ? 'primary' : 'default'}
             >
               {selectedService.isFavorite ? <Star /> : <StarBorder />}
             </IconButton>
           </Box>
-          
+
           <Divider sx={{ my: 2 }} />
-          
+
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <List>
@@ -845,52 +865,52 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                   <ListItemIcon>
                     <Phone color="primary" />
                   </ListItemIcon>
-                  <ListItemText 
-                    primary="Phone Number" 
+                  <ListItemText
+                    primary="Phone Number"
                     secondary={
-                      <Typography 
-                        component="a" 
+                      <Typography
+                        component="a"
                         href={`tel:${selectedService.phone}`}
                         color="primary"
                       >
                         {formatPhoneNumber(selectedService.phone)}
                       </Typography>
-                    } 
+                    }
                   />
                 </ListItem>
-                
+
                 <ListItem>
                   <ListItemIcon>
                     <LocationOn color="primary" />
                   </ListItemIcon>
-                  <ListItemText 
-                    primary="Address" 
-                    secondary={selectedService.address} 
+                  <ListItemText
+                    primary="Address"
+                    secondary={selectedService.address}
                   />
                 </ListItem>
-                
+
                 {selectedService.operatingHours && (
                   <ListItem>
                     <ListItemIcon>
                       <AccessTime color="primary" />
                     </ListItemIcon>
-                    <ListItemText 
-                      primary="Operating Hours" 
-                      secondary={selectedService.operatingHours} 
+                    <ListItemText
+                      primary="Operating Hours"
+                      secondary={selectedService.operatingHours}
                     />
                   </ListItem>
                 )}
-                
+
                 {selectedService.website && (
                   <ListItem>
                     <ListItemIcon>
                       <Public color="primary" />
                     </ListItemIcon>
-                    <ListItemText 
-                      primary="Website" 
+                    <ListItemText
+                      primary="Website"
                       secondary={
-                        <Typography 
-                          component="a" 
+                        <Typography
+                          component="a"
                           href={selectedService.website}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -898,36 +918,36 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                         >
                           {selectedService.website}
                         </Typography>
-                      } 
+                      }
                     />
                   </ListItem>
                 )}
-                
+
                 {selectedService.distance !== undefined && (
                   <ListItem>
                     <ListItemIcon>
                       <MyLocation color="primary" />
                     </ListItemIcon>
-                    <ListItemText 
-                      primary="Distance" 
+                    <ListItemText
+                      primary="Distance"
                       secondary={
-                        selectedService.distance < 1 
-                          ? `${(selectedService.distance * 1000).toFixed(0)} meters away` 
+                        selectedService.distance < 1
+                          ? `${(selectedService.distance * 1000).toFixed(0)} meters away`
                           : `${selectedService.distance.toFixed(1)} km away`
-                      } 
+                      }
                     />
                   </ListItem>
                 )}
               </List>
             </Grid>
-            
+
             <Grid item xs={12} md={6}>
               {selectedService.services && selectedService.services.length > 0 && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="h6" gutterBottom>
                     Services Offered
                   </Typography>
-                  
+
                   <List dense>
                     {selectedService.services.map((service, index) => (
                       <ListItem key={index}>
@@ -940,12 +960,12 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                   </List>
                 </Box>
               )}
-              
+
               <Box>
                 <Typography variant="h6" gutterBottom>
                   Emergency Instructions
                 </Typography>
-                
+
                 <Alert severity="info" sx={{ mb: 2 }}>
                   <Typography variant="body2">
                     {selectedService.type === 'hospital' && "Call ahead if possible to inform them of your arrival and condition."}
@@ -960,21 +980,21 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
               </Box>
             </Grid>
           </Grid>
-          
+
           <Divider sx={{ my: 2 }} />
-          
+
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               startIcon={<Call />}
               href={`tel:${selectedService.phone}`}
               color="primary"
             >
               Call Now
             </Button>
-            
+
             <Box>
-              <Button 
+              <Button
                 startIcon={<Directions />}
                 onClick={() => {
                   window.open(
@@ -986,8 +1006,8 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
               >
                 Get Directions
               </Button>
-              
-              <Button 
+
+              <Button
                 startIcon={<Share />}
                 onClick={() => {
                   navigator.clipboard.writeText(
@@ -1005,7 +1025,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       </Box>
     );
   };
-  
+
   // Render emergency contacts
   const renderEmergencyContacts = () => {
     if (loading && contacts.length === 0) {
@@ -1018,7 +1038,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
         </Box>
       );
     }
-    
+
     if (error && contacts.length === 0) {
       return (
         <Alert severity="error" sx={{ m: 2 }}>
@@ -1026,23 +1046,23 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
         </Alert>
       );
     }
-    
+
     return (
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h6">
             Your Emergency Contacts
           </Typography>
-          
-          <Button 
-            variant="contained" 
+
+          <Button
+            variant="contained"
             startIcon={<Add />}
             onClick={() => setShowAddContactDialog(true)}
           >
             Add Contact
           </Button>
         </Box>
-        
+
         {contacts.length === 0 ? (
           <Paper sx={{ p: 3, textAlign: 'center' }}>
             <ContactEmergency sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
@@ -1052,8 +1072,8 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Add trusted contacts who should be notified in case of emergency
             </Typography>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               startIcon={<Add />}
               onClick={() => setShowAddContactDialog(true)}
             >
@@ -1069,8 +1089,8 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                   <ListItem
                     secondaryAction={
                       <Box>
-                        <IconButton 
-                          edge="end" 
+                        <IconButton
+                          edge="end"
                           onClick={() => {
                             setEditContact(contact);
                             setShowEditContactDialog(true);
@@ -1079,9 +1099,9 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                         >
                           <Edit />
                         </IconButton>
-                        
-                        <IconButton 
-                          edge="end" 
+
+                        <IconButton
+                          edge="end"
                           onClick={() => {
                             setDeleteContact(contact);
                             setShowDeleteContactDialog(true);
@@ -1097,34 +1117,34 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                         <ContactPhone />
                       </Avatar>
                     </ListItemAvatar>
-                    
+
                     <ListItemText
                       primary={
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           {contact.name}
                           {contact.isVerified ? (
                             <Tooltip title="Verified Contact">
-                              <Chip 
-                                label="Verified" 
-                                size="small" 
+                              <Chip
+                                label="Verified"
+                                size="small"
                                 color="success"
                                 sx={{ ml: 1, height: 20, fontSize: '0.7rem' }}
                               />
                             </Tooltip>
                           ) : (
                             <Tooltip title="Contact not verified">
-                              <Chip 
-                                label="Unverified" 
-                                size="small" 
+                              <Chip
+                                label="Unverified"
+                                size="small"
                                 color="warning"
                                 sx={{ ml: 1, height: 20, fontSize: '0.7rem' }}
                               />
                             </Tooltip>
                           )}
-                          
-                          <Chip 
-                            label={`Priority ${contact.priority}`} 
-                            size="small" 
+
+                          <Chip
+                            label={`Priority ${contact.priority}`}
+                            size="small"
                             color="primary"
                             variant="outlined"
                             sx={{ ml: 1, height: 20, fontSize: '0.7rem' }}
@@ -1136,7 +1156,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                           <Typography variant="body2">
                             {formatPhoneNumber(contact.phone)}
                           </Typography>
-                          
+
                           <Typography variant="caption" color="text.secondary">
                             {contact.relationship}
                           </Typography>
@@ -1144,31 +1164,31 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                       }
                     />
                   </ListItem>
-                  
+
                   <Divider variant="inset" component="li" />
-                  
+
                   <Box sx={{ display: 'flex', p: 1, pl: 9 }}>
-                    <Button 
-                      size="small" 
+                    <Button
+                      size="small"
                       startIcon={<Call />}
                       href={`tel:${contact.phone}`}
                       sx={{ mr: 1 }}
                     >
                       Call
                     </Button>
-                    
-                    <Button 
-                      size="small" 
+
+                    <Button
+                      size="small"
                       startIcon={<Message />}
                       href={`sms:${contact.phone}`}
                       sx={{ mr: 1 }}
                     >
                       Message
                     </Button>
-                    
+
                     {!contact.isVerified && (
-                      <Button 
-                        size="small" 
+                      <Button
+                        size="small"
                         color="warning"
                         onClick={() => verifyEmergencyContact(contact.id)}
                       >
@@ -1180,19 +1200,19 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
               ))}
           </List>
         )}
-        
+
         <Box sx={{ mt: 4 }}>
           <Typography variant="h6" gutterBottom>
             Emergency SOS
           </Typography>
-          
+
           <Paper sx={{ p: 3, bgcolor: 'error.light', color: 'error.contrastText' }}>
             <Typography variant="body1" gutterBottom>
               In case of emergency, you can quickly alert your emergency contacts and nearby emergency services.
             </Typography>
-            
-            <Button 
-              variant="contained" 
+
+            <Button
+              variant="contained"
               color="error"
               size="large"
               fullWidth
@@ -1207,7 +1227,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       </Box>
     );
   };
-  
+
   // Render add contact dialog
   const renderAddContactDialog = () => {
     return (
@@ -1218,14 +1238,14 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
         fullWidth
       >
         <DialogTitle>Add Emergency Contact</DialogTitle>
-        
+
         <DialogContent>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
-          
+
           <TextField
             label="Name"
             fullWidth
@@ -1234,7 +1254,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
             margin="normal"
             required
           />
-          
+
           <TextField
             label="Phone Number"
             fullWidth
@@ -1244,7 +1264,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
             required
             helperText="This number will be contacted in case of emergency"
           />
-          
+
           <TextField
             label="Relationship"
             fullWidth
@@ -1253,7 +1273,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
             margin="normal"
             placeholder="e.g. Parent, Spouse, Friend"
           />
-          
+
           <TextField
             label="Priority"
             type="number"
@@ -1264,16 +1284,16 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
             InputProps={{ inputProps: { min: 1, max: 10 } }}
             helperText="Lower number means higher priority (1 is highest)"
           />
-          
+
           <DialogContentText sx={{ mt: 2 }}>
             By adding this contact, you confirm that you have the person's consent to be contacted in case of emergency.
           </DialogContentText>
         </DialogContent>
-        
+
         <DialogActions>
           <Button onClick={() => setShowAddContactDialog(false)}>Cancel</Button>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             onClick={addEmergencyContact}
             disabled={loading || !newContact.name.trim() || !newContact.phone.trim()}
           >
@@ -1283,11 +1303,11 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       </Dialog>
     );
   };
-  
+
   // Render edit contact dialog
   const renderEditContactDialog = () => {
     if (!editContact) return null;
-    
+
     return (
       <Dialog
         open={showEditContactDialog}
@@ -1296,14 +1316,14 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
         fullWidth
       >
         <DialogTitle>Edit Emergency Contact</DialogTitle>
-        
+
         <DialogContent>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
-          
+
           <TextField
             label="Name"
             fullWidth
@@ -1312,7 +1332,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
             margin="normal"
             required
           />
-          
+
           <TextField
             label="Phone Number"
             fullWidth
@@ -1321,7 +1341,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
             margin="normal"
             required
           />
-          
+
           <TextField
             label="Relationship"
             fullWidth
@@ -1329,7 +1349,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
             onChange={(e) => setEditContact({ ...editContact, relationship: e.target.value })}
             margin="normal"
           />
-          
+
           <TextField
             label="Priority"
             type="number"
@@ -1341,11 +1361,11 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
             helperText="Lower number means higher priority (1 is highest)"
           />
         </DialogContent>
-        
+
         <DialogActions>
           <Button onClick={() => setShowEditContactDialog(false)}>Cancel</Button>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             onClick={updateEmergencyContact}
             disabled={loading || !editContact.name.trim() || !editContact.phone.trim()}
           >
@@ -1355,11 +1375,11 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       </Dialog>
     );
   };
-  
+
   // Render delete contact dialog
   const renderDeleteContactDialog = () => {
     if (!deleteContact) return null;
-    
+
     return (
       <Dialog
         open={showDeleteContactDialog}
@@ -1368,18 +1388,18 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
         fullWidth
       >
         <DialogTitle>Delete Emergency Contact</DialogTitle>
-        
+
         <DialogContent>
           <DialogContentText>
             Are you sure you want to delete {deleteContact.name} from your emergency contacts?
             This action cannot be undone.
           </DialogContentText>
         </DialogContent>
-        
+
         <DialogActions>
           <Button onClick={() => setShowDeleteContactDialog(false)}>Cancel</Button>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             color="error"
             onClick={deleteEmergencyContact}
             disabled={loading}
@@ -1390,7 +1410,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       </Dialog>
     );
   };
-  
+
   // Render emergency dialog
   const renderEmergencyDialog = () => {
     return (
@@ -1406,24 +1426,24 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
             Emergency Alert
           </Box>
         </DialogTitle>
-        
+
         <DialogContent>
           <DialogContentText sx={{ mt: 2, fontWeight: 'bold' }}>
             This will send an emergency alert with your current location to emergency services and your selected contacts.
           </DialogContentText>
-          
+
           {error && (
             <Alert severity="error" sx={{ my: 2 }}>
               {error}
             </Alert>
           )}
-          
+
           {contacts.length > 0 && (
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle2" gutterBottom>
                 Select contacts to notify:
               </Typography>
-              
+
               <List dense>
                 {contacts
                   .sort((a, b) => a.priority - b.priority)
@@ -1456,17 +1476,17 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                     </ListItem>
                   ))}
               </List>
-              
+
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                <Button 
-                  size="small" 
+                <Button
+                  size="small"
                   onClick={() => setSelectedContacts(contacts.map(c => c.id))}
                 >
                   Select All
                 </Button>
-                
-                <Button 
-                  size="small" 
+
+                <Button
+                  size="small"
                   onClick={() => setSelectedContacts([])}
                 >
                   Clear Selection
@@ -1474,22 +1494,22 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
               </Box>
             </Box>
           )}
-          
+
           <Alert severity="warning" sx={{ mt: 2 }}>
             Only use this feature in genuine emergency situations.
           </Alert>
         </DialogContent>
-        
+
         <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button 
+          <Button
             onClick={() => setShowEmergencyDialog(false)}
             variant="outlined"
           >
             Cancel
           </Button>
-          
-          <Button 
-            variant="contained" 
+
+          <Button
+            variant="contained"
             color="error"
             onClick={triggerEmergencyAlert}
             disabled={loading}
@@ -1501,30 +1521,30 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
       </Dialog>
     );
   };
-  
+
   return (
     <div className="container mx-auto py-8">
       {/* Add Contact Dialog */}
       {renderAddContactDialog()}
-      
+
       {/* Edit Contact Dialog */}
       {renderEditContactDialog()}
-      
+
       {/* Delete Contact Dialog */}
       {renderDeleteContactDialog()}
-      
+
       {/* Emergency Dialog */}
       {renderEmergencyDialog()}
-      
+
       {/* Snackbar for notifications */}
       {/* We'll replace this with a custom notification system later */}
-      
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">
           Emergency Services
         </h1>
-        
-        <Button 
+
+        <Button
           variant="destructive"
           onClick={() => setShowEmergencyDialog(true)}
         >
@@ -1532,7 +1552,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
           Emergency SOS
         </Button>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="md:col-span-1">
           <Card className="mb-6">
@@ -1543,8 +1563,8 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="mr-2"
               />
-              
-              <Button 
+
+              <Button
                 variant="outline"
                 onClick={getCurrentLocation}
               >
@@ -1552,7 +1572,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                 Update Location
               </Button>
             </div>
-            
+
             {/* We'll implement tabs differently */}
             <div className="border-b border-border p-2">
               <div className="flex overflow-x-auto">
@@ -1569,7 +1589,7 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                 ))}
               </div>
             </div>
-            
+
             <div className="p-4">
               <div className="flex justify-between items-center mb-4">
                 <p className="text-sm text-muted-foreground">
@@ -1579,15 +1599,15 @@ const EmergencyServices: React.FC<EmergencyServicesProps> = ({
                     'Location not available. Please enable location services.'
                   )}
                 </p>
-                
+
                 {/* We'll implement radius selector differently */}
               </div>
-              
+
               {selectedService ? renderServiceDetails() : renderServiceList()}
             </div>
           </Card>
         </div>
-        
+
         <div className="md:col-span-1">
           <Card className="p-4">
             {renderEmergencyContacts()}

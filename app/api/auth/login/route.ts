@@ -19,7 +19,7 @@ const loginSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting
-    const identifier = request.ip || request.headers.get('x-forwarded-for') || 'anonymous';
+    const identifier = request.headers.get('x-forwarded-for') || 'anonymous';
     const rateLimitResult = await authRateLimit.login(identifier);
     
     if (!rateLimitResult.success) {
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const data = validationResult.data;
     
     // Get client information for audit logging
-    const ipAddress = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+    const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
     // Authenticate user
@@ -130,21 +130,21 @@ export async function POST(request: NextRequest) {
     console.error('Login error:', error);
     
     // Handle specific errors
-    if (error.message.includes('Invalid email or password')) {
+    if (error instanceof Error && error.message.includes('Invalid email or password')) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
 
-    if (error.message.includes('Account is locked')) {
+    if (error instanceof Error && error.message.includes('Account is locked')) {
       return NextResponse.json(
         { error: error.message },
         { status: 423 } // Locked
       );
     }
 
-    if (error.message.includes('Account has been locked')) {
+    if (error instanceof Error && error.message.includes('Account has been locked')) {
       return NextResponse.json(
         { error: error.message },
         { status: 423 } // Locked

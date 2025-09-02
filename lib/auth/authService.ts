@@ -469,7 +469,14 @@ class AuthService {
   async updateConsent(data: ConsentUpdateData): Promise<AuthResult> {
     try {
       // Update user consent based on type
-      const updateData: any = {};
+      const updateData: Partial<{
+        dataProcessingConsent: boolean;
+        locationSharingLevel: string;
+        crowdsourcingParticipation: boolean;
+        personalizedRecommendations: boolean;
+        analyticsConsent: boolean;
+        marketingConsent: boolean;
+      }> = {};
       switch (data.consentType) {
         case 'data_processing':
           updateData.dataProcessingConsent = data.granted;
@@ -495,16 +502,6 @@ class AuthService {
             message: 'Invalid consent type',
           };
       }
-
-      // Update user consent
-      await prisma.user.update({
-        where: { id: data.userId },
-        data: {
-          ...updateData,
-          consentDate: new Date(),
-          consentVersion: data.consentVersion,
-        },
-      });
 
       // Update privacy settings
       await prisma.privacySettings.update({

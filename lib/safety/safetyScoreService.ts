@@ -416,7 +416,7 @@ class SafetyScoreService {
         select: {
           id: true,
           severity: true,
-          verificationStatus: true,
+          status: true,
           upvotes: true,
           downvotes: true
         }
@@ -435,17 +435,18 @@ class SafetyScoreService {
       for (const report of reports) {
         // Convert severity to score (higher severity = lower safety score)
         let severityScore = 0;
+        // Severity is an Int in the database (1-5 scale), not a string
         switch (report.severity) {
-          case 'LOW':
+          case 1: // LOW
             severityScore = 80;
             break;
-          case 'MEDIUM':
+          case 2: // MEDIUM
             severityScore = 60;
             break;
-          case 'HIGH':
+          case 3: // HIGH
             severityScore = 30;
             break;
-          case 'CRITICAL':
+          case 4: // CRITICAL
             severityScore = 10;
             break;
           default:
@@ -459,7 +460,7 @@ class SafetyScoreService {
         totalScore += severityScore;
 
         // Track verified reports separately
-        if (report.verificationStatus === 'VERIFIED') {
+        if (report.status === 'VERIFIED') {
           totalVerifiedScore += severityScore;
           verifiedCount++;
         }

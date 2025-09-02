@@ -248,7 +248,7 @@ const MapController = dynamic(
 
       useEffect(() => {
         if (settingStartPoint || settingEndPoint) {
-          const handleClick = (e: any) => {
+          const handleClick = (e: LeafletMouseEvent) => {
             onMapClick({
               lat: e.latlng.lat,
               lng: e.latlng.lng
@@ -510,4 +510,12 @@ export default function RoutePlanning({
       )}
     </div>
   );
+}
+
+// Define the event type for Leaflet click events
+interface LeafletMouseEvent {
+  latlng: {
+    lat: number;
+    lng: number;
+  };
 }

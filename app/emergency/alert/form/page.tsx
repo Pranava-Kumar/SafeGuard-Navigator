@@ -9,30 +9,36 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Box,
-  Typography,
-  Container,
-  Paper,
-  Button,
-  TextField,
-  CircularProgress,
-  Alert,
-  AlertTitle,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
-  Checkbox,
-  FormControlLabel
-} from '@mui/material';
-import {
-  Warning,
-  MyLocation,
-  Send,
+  AlertTriangle,
   Phone,
-  Message
-} from '@mui/icons-material';
-import { formatPhoneNumber } from '@/lib/utils';
+  MessageCircle,
+  Send,
+  User,
+  MapPin,
+  Clock,
+  Bell,
+  Building,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { formatPhoneNumber } from "@/lib/utils";
 
 interface EmergencyContact {
   id: string;
@@ -148,9 +154,9 @@ export default function EmergencyAlertFormPage() {
       }
 
       setAlertSent(true);
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
       console.error('Error sending alert:', err);
-      setError(err.message || 'Failed to send emergency alert');
+      setError(err instanceof Error ? err.message : 'Failed to send emergency alert');
     } finally {
       setLoading(false);
     }
@@ -170,230 +176,231 @@ export default function EmergencyAlertFormPage() {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Send Emergency Alert
-        </Typography>
+    <div className="container mx-auto py-8 max-w-3xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">Send Emergency Alert</h1>
+        <p className="text-muted-foreground">
+          Trigger an alert to your emergency contacts and nearby services.
+        </p>
+      </div>
 
-        <Paper
-          sx={{
-            p: 2,
-            mt: 2,
-            bgcolor: 'error.light',
-            color: 'error.contrastText',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Warning sx={{ mr: 1, fontSize: 30 }} />
-            <Typography variant="h6">
-              In case of immediate danger, call the national emergency number: <strong>112</strong>
-            </Typography>
-          </Box>
-
-          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-            <Button
-              variant="contained"
-              color="error"
-              size="large"
-              href="tel:112"
-              startIcon={<Phone />}
-              sx={{ mr: 2 }}
-            >
-              Call 112
+      <Card className="border-destructive bg-destructive/10">
+        <CardHeader>
+          <div className="flex items-center gap-4">
+            <AlertTriangle className="h-8 w-8 text-destructive" />
+            <div>
+              <CardTitle className="text-destructive">
+                In case of immediate danger, call 112
+              </CardTitle>
+              <p className="text-destructive/80">
+                This is the national emergency number in India.
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4">
+            <Button variant="destructive" size="lg" asChild>
+              <a href="tel:112">
+                <Phone className="mr-2 h-4 w-4" /> Call 112
+              </a>
             </Button>
-
-            <Button
-              variant="contained"
-              color="error"
-              size="large"
-              href="sms:112"
-              startIcon={<Message />}
-            >
-              Text 112
+            <Button variant="destructive" size="lg" asChild>
+              <a href="sms:112">
+                <MessageCircle className="mr-2 h-4 w-4" /> Text 112
+              </a>
             </Button>
-          </Box>
-        </Paper>
-      </Box>
+          </div>
+        </CardContent>
+      </Card>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+        <Alert variant="destructive" className="my-4">
+          <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
-          {error}
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {alertSent ? (
-        <Paper sx={{ p: 3, textAlign: 'center' }}>
-          <Alert severity="success" sx={{ mb: 3 }}>
-            <AlertTitle>Alert Sent Successfully</AlertTitle>
-            Your emergency alert has been sent to your selected contacts and nearby emergency services.
-          </Alert>
-
-          <Typography variant="body1" paragraph>
-            Stay in a safe location if possible. Emergency services have been notified of your situation.
-          </Typography>
-
-          <Box sx={{ mt: 3 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleReset}
-              sx={{ mr: 2 }}
-            >
-              Send Another Alert
-            </Button>
-
-            <Button
-              variant="outlined"
-              onClick={() => router.push('/emergency/alerts')}
-            >
+        <Card className="my-4 text-center">
+          <CardHeader>
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle className="h-6 w-6 text-green-600" />
+            </div>
+            <CardTitle>Alert Sent Successfully</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Your emergency alert has been sent to your selected contacts and
+              nearby emergency services. Stay in a safe location if possible.
+            </p>
+          </CardContent>
+          <CardFooter className="flex justify-center gap-4">
+            <Button onClick={handleReset}>Send Another Alert</Button>
+            <Button variant="outline" onClick={() => router.push("/emergency/alerts")}>
               View All Alerts
             </Button>
-          </Box>
-        </Paper>
+          </CardFooter>
+        </Card>
       ) : (
-        <Paper sx={{ p: 3 }}>
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Your current location:
-            </Typography>
-
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <MyLocation sx={{ mr: 1, color: userLocation ? 'success.main' : 'error.main' }} />
-              <Typography>
-                {userLocation
-                  ? `${userLocation[0].toFixed(6)}, ${userLocation[1].toFixed(6)}`
-                  : 'Location not available'}
-              </Typography>
-
-              {!userLocation && (
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<MyLocation />}
-                  sx={{ ml: 2 }}
-                  onClick={() => {
-                    if (navigator.geolocation) {
-                      navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                          setUserLocation([position.coords.latitude, position.coords.longitude]);
-                        },
-                        (error) => {
-                          console.error('Error getting location:', error);
-                          setError('Unable to get your location. Please enable location services.');
-                        }
-                      );
-                    }
-                  }}
-                >
-                  Get Location
-                </Button>
-              )}
-            </Box>
-          </Box>
-
-          <TextField
-            label="Emergency Message"
-            multiline
-            rows={3}
-            fullWidth
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Describe your emergency situation (optional)"
-            sx={{ mb: 3 }}
-          />
-
-          <Box sx={{ mb: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="subtitle1">
-                Select Emergency Contacts to Alert:
-              </Typography>
-
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={handleAddContacts}
-              >
-                Manage Contacts
-              </Button>
-            </Box>
-
-            {contacts.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 1 }}>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  You don't have any emergency contacts yet.
-                </Typography>
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={handleAddContacts}
-                >
-                  Add Emergency Contacts
-                </Button>
-              </Box>
-            ) : (
-              <>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={selectAllContacts}
-                      onChange={(e) => setSelectAllContacts(e.target.checked)}
-                    />
-                  }
-                  label="Select All Contacts"
-                  sx={{ mb: 1 }}
+        <Card className="my-4">
+          <CardHeader>
+            <CardTitle>Your Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label>Your Current Location</Label>
+              <div className="flex items-center gap-2">
+                <MapPin
+                  className={`h-5 w-5 ${
+                    userLocation ? "text-green-500" : "text-red-500"
+                  }`}
                 />
-
-                <List sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                  {contacts.map((contact) => (
-                    <React.Fragment key={contact.id}>
-                      <ListItem
-                        onClick={() => handleContactSelect(contact.id)}
-                        sx={{
-                          py: 1,
-                          backgroundColor: selectedContacts.includes(contact.id) ? 'action.selected' : 'transparent'
-                        }}
+                <span className="text-sm text-muted-foreground">
+                  {userLocation
+                    ? `${userLocation[0].toFixed(6)}, ${userLocation[1].toFixed(6)}`
+                    : "Location not available"}
+                </span>
+                {!userLocation && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                          (position) => {
+                            setUserLocation([
+                              position.coords.latitude,
+                              position.coords.longitude,
+                            ]);
+                          },
+                          (error) => {
+                            console.error("Error getting location:", error);
+                            setError(
+                              "Unable to get your location. Please enable location services."
+                            );
+                          }
+                        );
+                      }
+                    }}
+                  >
+                    <MapPin className="mr-2 h-4 w-4" />
+                    Get Location
+                  </Button>
+                )}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="message">Emergency Message (Optional)</Label>
+              <Input
+                id="message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="e.g., I'm at..."
+              />
+              <p className="text-xs text-muted-foreground">
+                A default message will be sent if you leave this blank.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>Select Emergency Contacts</Label>
+                <Button variant="outline" size="sm" onClick={handleAddContacts}>
+                  Manage Contacts
+                </Button>
+              </div>
+              {contacts.length === 0 ? (
+                <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed p-8 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    You haven&apos;t added any emergency contacts yet.
+                  </p>
+                  <Button size="sm" onClick={handleAddContacts}>
+                    Add Contacts
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2 rounded-md border">
+                  <div className="flex items-center gap-2 border-b p-4">
+                    <Checkbox
+                      id="select-all"
+                      checked={selectAllContacts}
+                      onCheckedChange={(checked) => setSelectAllContacts(Boolean(checked))}
+                    />
+                    <Label htmlFor="select-all" className="font-medium">
+                      Select All Contacts
+                    </Label>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto">
+                    {contacts.map((contact) => (
+                      <div
+                        key={contact.id}
+                        className="flex items-center gap-2 p-4"
                       >
                         <Checkbox
+                          id={`contact-${contact.id}`}
                           checked={selectedContacts.includes(contact.id)}
-                          onChange={() => handleContactSelect(contact.id)}
-                          onClick={(e) => e.stopPropagation()}
+                          onCheckedChange={() => handleContactSelect(contact.id)}
                         />
-                        <ListItemText
-                          primary={contact.name}
-                          secondary={
-                            <>
-                              {formatPhoneNumber(contact.phone)}
-                              {contact.relationship && ` • ${contact.relationship}`}
-                              {!contact.isVerified && ` • Not Verified`}
-                            </>
-                          }
-                        />
-                      </ListItem>
-                      {contacts.indexOf(contact) < contacts.length - 1 && <Divider />}
-                    </React.Fragment>
-                  ))}
-                </List>
-              </>
-            )}
-          </Box>
-
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Button
-              variant="contained"
-              color="error"
-              size="large"
-              startIcon={<Send />}
-              disabled={loading || !userLocation}
-              onClick={handleTriggerAlert}
-              sx={{ minWidth: 200 }}
-            >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Send Emergency Alert'}
-            </Button>
-          </Box>
-        </Paper>
+                        <div className="grid gap-1.5">
+                          <Label
+                            htmlFor={`contact-${contact.id}`}
+                            className="font-medium"
+                          >
+                            {contact.name}
+                          </Label>
+                          <p className="text-sm text-muted-foreground">
+                            {formatPhoneNumber(contact.phone)}
+                            {contact.relationship && ` • ${contact.relationship}`}
+                            {!contact.isVerified && (
+                              <span className="text-yellow-600"> • Not Verified</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+          <CardFooter>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  size="lg"
+                  className="w-full"
+                  disabled={loading || !userLocation}
+                >
+                  {loading ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-4 w-4" />
+                      Send Emergency Alert
+                    </>
+                  )}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Emergency Alert</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will immediately notify your selected contacts and
+                    nearby emergency services. Are you sure you want to proceed?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleTriggerAlert}>
+                    Yes, Send Alert
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </CardFooter>
+        </Card>
       )}
-    </Container>
+    </div>
   );
 }

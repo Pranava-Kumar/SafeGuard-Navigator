@@ -40,16 +40,8 @@ export default function Home() {
 
   // Check if user was redirected from a protected route
   useEffect(() => {
-    if (!isAuthenticated) {
-      const redirectAfterLogin = sessionStorage.getItem('redirect_after_login');
-      if (redirectAfterLogin && redirectAfterLogin !== '/') {
-        // Show signup modal if user was trying to access protected content
-        setShowSignupModal(true);
-        // Clear the redirect flag
-        sessionStorage.removeItem('redirect_after_login');
-      }
-    }
-  }, [isAuthenticated]);
+    // Removed authentication redirect logic
+  }, []);
 
   const features = [
     {
@@ -257,70 +249,19 @@ export default function Home() {
   ];
 
   const handleStartFreeTrial = () => {
-    if (isAuthenticated) {
-      window.location.href = "/dashboard";
-    } else {
-      setShowSignupModal(true);
-    }
+    window.location.href = "/dashboard";
   };
 
   const handleSignIn = () => {
-    setShowLoginModal(true);
+    window.location.href = "/dashboard";
   };
 
   const handleGetStarted = () => {
-    if (isAuthenticated) {
-      window.location.href = "/dashboard";
-    } else {
-      setShowSignupModal(true);
-    }
+    window.location.href = "/dashboard";
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 flex items-center">
-                <Shield className="h-8 w-8 text-blue-600" />
-                <span className="ml-2 text-xl font-bold text-gray-900">SafeRoute</span>
-              </div>
-              <div className="hidden md:block ml-10">
-                <div className="flex items-baseline space-x-4">
-                  <a href="/" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Home</a>
-                  <a href="/about" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">About</a>
-                  <a href="/map" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Map</a>
-                  <a href="/dashboard" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
-                  <a href="/analytics" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Analytics</a>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              {isAuthenticated ? (
-                <>
-                  <span className="text-sm text-gray-600">
-                    Welcome, {user?.displayName || user?.firstName}!
-                  </span>
-                  <Button variant="outline" onClick={logout}>
-                    Sign Out
-                  </Button>
-                  <Button onClick={() => window.location.href = "/dashboard"}>
-                    Dashboard
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="outline" onClick={handleSignIn}>Sign In</Button>
-                  <Button onClick={handleGetStarted}>Get Started</Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
@@ -465,19 +406,11 @@ export default function Home() {
                         window.location.href = '/map';
                         break;
                       case 'dashboard':
-                        if (isAuthenticated) {
-                          window.location.href = '/dashboard';
-                        } else {
-                          setShowLoginModal(true);
-                        }
+                        window.location.href = '/dashboard';
                         break;
                       case 'emergency':
-                        if (isAuthenticated) {
-                          alert('Emergency features available in dashboard and map');
-                          window.location.href = '/dashboard';
-                        } else {
-                          setShowLoginModal(true);
-                        }
+                        alert('Emergency features available in dashboard and map');
+                        window.location.href = '/dashboard';
                         break;
                       case 'routing':
                         alert('Route planning available in the map view');

@@ -70,7 +70,7 @@ interface Notification {
   actions?: {
     label: string;
     action: string;
-    data?: any;
+    data?: Record<string, unknown>;
   }[];
   expiresAt?: string;
   source?: string;
@@ -284,7 +284,7 @@ const SafetyNotifications: React.FC<SafetyNotificationsProps> = ({
       
       setSnackbarMessage('All notifications marked as read');
       setSnackbarOpen(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error marking all notifications as read:', err);
       setSnackbarMessage('Failed to mark all notifications as read');
       setSnackbarOpen(true);
@@ -357,7 +357,7 @@ const SafetyNotifications: React.FC<SafetyNotificationsProps> = ({
       setSnackbarMessage('Notification preferences saved');
       setSnackbarOpen(true);
       setShowPreferences(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving notification preferences:', err);
       setSnackbarMessage('Failed to save notification preferences');
       setSnackbarOpen(true);
@@ -384,9 +384,9 @@ const SafetyNotifications: React.FC<SafetyNotificationsProps> = ({
       setConsentGiven(true);
       setShowConsentDialog(false);
       fetchNotifications();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error updating consent:', err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Failed to update consent settings');
     }
   };
   
@@ -412,7 +412,7 @@ const SafetyNotifications: React.FC<SafetyNotificationsProps> = ({
             setConsentGiven(true);
           }
         }
-      } catch (err) {
+      } catch {
         // If error, we'll show consent dialog when needed
       }
     };
@@ -432,9 +432,9 @@ const SafetyNotifications: React.FC<SafetyNotificationsProps> = ({
         console.log('WebSocket connection established');
       };
       
-      socket.onmessage = (event) => {
+      socket.onmessage = (event: MessageEvent) => {
         try {
-          const data = JSON.parse(event.data);
+          const data: { type: string; notification: Notification } = JSON.parse(event.data as string);
           
           if (data.type === 'notification') {
             // Add new notification to state
@@ -639,7 +639,7 @@ const SafetyNotifications: React.FC<SafetyNotificationsProps> = ({
                     <Chip 
                       label={notification.severity}
                       size="small"
-                      color={getSeverityColor(notification.severity) as any}
+                      color={getSeverityColor(notification.severity) as "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"}
                       sx={{ height: 20, fontSize: '0.7rem' }}
                     />
                   </Box>
@@ -713,7 +713,7 @@ const SafetyNotifications: React.FC<SafetyNotificationsProps> = ({
             <Chip 
               label={selectedNotification.severity}
               size="small"
-              color={getSeverityColor(selectedNotification.severity) as any}
+              color={getSeverityColor(selectedNotification.severity) as "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"}
             />
             
             <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
@@ -1156,4 +1156,5 @@ const SafetyNotifications: React.FC<SafetyNotificationsProps> = ({
   );
 };
 
-export default SafetyNotifications;
+const SafetyNotificationsComponent = SafetyNotifications;
+export default SafetyNotificationsComponent;

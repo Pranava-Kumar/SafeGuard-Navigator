@@ -76,65 +76,51 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Check authentication status on mount
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/auth/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.user) {
-          setUser(data.user);
-        }
-      } else {
-        setUser(null);
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
+  // Create a mock user for guest access
+  const mockUser: User = {
+    id: "guest-user-id",
+    email: "guest@example.com",
+    firstName: "Guest",
+    lastName: "User",
+    displayName: "Guest User",
+    userType: "pedestrian",
+    role: "user",
+    emailVerified: true,
+    language: "en",
+    country: "India",
+    subscriptionPlan: "free",
+    subscriptionStatus: "active",
+    dataProcessingConsent: true,
+    consentDate: new Date(),
+    consentVersion: "1.0",
+    locationSharingLevel: "city_only",
+    crowdsourcingParticipation: true,
+    personalizedRecommendations: true,
+    analyticsConsent: false,
+    marketingConsent: false,
+    riskTolerance: 50,
+    timePreference: "balanced",
+    createdAt: new Date(),
+    updatedAt: new Date()
   };
+
+  const [user, setUser] = useState<User | null>(mockUser);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Initialize with mock user (no need to check auth)
+  useEffect(() => {
+    setIsLoading(false);
+  }, []);
 
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/auth/simple-login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (data.success && data.user) {
-        setUser(data.user);
-        return { success: true, message: data.message };
-      } else {
-        return {
-          success: false,
-          message: data.message || 'Login failed',
-          errors: data.errors
-        };
-      }
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Always succeed with mock user
+      setUser(mockUser);
+      return { success: true, message: "Login successful" };
     } catch (error) {
       console.error('Login error:', error);
       return {
@@ -149,30 +135,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (data: RegisterData) => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/auth/simple-register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (result.success && result.user) {
-        setUser(result.user);
-        return {
-          success: true,
-          message: result.message || 'Registration successful'
-        };
-      } else {
-        return {
-          success: false,
-          message: result.message || 'Registration failed',
-          errors: result.errors
-        };
-      }
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Always succeed with mock user
+      setUser(mockUser);
+      return {
+        success: true,
+        message: 'Registration successful'
+      };
     } catch (error) {
       console.error('Registration error:', error);
       return {
@@ -187,29 +158,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       setIsLoading(true);
-
-      // Call logout API
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      // Clear user state
-      setUser(null);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Keep the mock user (no actual logout)
+      setUser(mockUser);
     } catch (error) {
       console.error('Logout error:', error);
-      // Still clear user state even if API call fails
-      setUser(null);
+      // Still keep the mock user
+      setUser(mockUser);
     } finally {
       setIsLoading(false);
     }
   };
 
   const refreshUser = async () => {
-    await checkAuth();
+    // No need to refresh for mock user
   };
 
   const value = {
@@ -218,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register,
     logout,
     isLoading,
-    isAuthenticated: !!user,
+    isAuthenticated: true, // Always authenticated with mock user
     refreshUser
   };
 

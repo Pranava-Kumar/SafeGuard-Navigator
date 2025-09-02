@@ -7,11 +7,11 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Container, 
-  Paper, 
+import {
+  Box,
+  Typography,
+  Container,
+  Paper,
   Divider,
   Button,
   Grid,
@@ -34,8 +34,8 @@ import {
   TableRow,
   Rating,
 } from '@mui/material';
-import { 
-  Warning, 
+import {
+  Warning,
   LocationOn,
   Search,
   Refresh,
@@ -360,66 +360,66 @@ const formatDate = (dateString: string) => {
 export default function SafetyScorePage() {
   // State for tab value
   const [tabValue, setTabValue] = useState(0);
-  
+
   // State for search query
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // State for minimum safety score filter
   const [minSafetyScore, setMinSafetyScore] = useState(0);
-  
+
   // State for time of day filter
   const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening' | 'night'>('morning');
-  
+
   // State for loading
   const [loading, setLoading] = useState(true);
-  
+
   // State for error
   const [error, setError] = useState<string | null>(null);
-  
+
   // State for area scores
   const [areaScores, setAreaScores] = useState<AreaSafetyScore[]>(mockAreaScores);
-  
+
   // State for route scores
   const [routeScores, setRouteScores] = useState<RouteSafetyScore[]>(mockRouteScores);
-  
+
   // State for selected area
   const [selectedArea, setSelectedArea] = useState<AreaSafetyScore | null>(null);
-  
+
   // State for selected route
   const [selectedRoute, setSelectedRoute] = useState<RouteSafetyScore | null>(null);
-  
+
   // Handle tab change
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
-  
+
   // Handle search query change
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
   };
-  
+
   // Handle minimum safety score change
   const handleMinSafetyScoreChange = (event: Event, newValue: number | number[]) => {
     setMinSafetyScore(newValue as number);
   };
-  
+
   // Handle time of day change
   const handleTimeOfDayChange = (time: 'morning' | 'afternoon' | 'evening' | 'night') => {
     setTimeOfDay(time);
   };
-  
+
   // Handle area selection
   const handleAreaSelect = (area: AreaSafetyScore) => {
     setSelectedArea(area);
     setSelectedRoute(null);
   };
-  
+
   // Handle route selection
   const handleRouteSelect = (route: RouteSafetyScore) => {
     setSelectedRoute(route);
     setSelectedArea(null);
   };
-  
+
   // Handle favorite toggle for area
   const handleAreaFavoriteToggle = (area: AreaSafetyScore) => {
     // In a real app, this would make an API call to update the favorite status
@@ -428,7 +428,7 @@ export default function SafetyScorePage() {
         a.id === area.id ? { ...a, isFavorite: !a.isFavorite } : a
       )
     );
-    
+
     if (selectedArea && selectedArea.id === area.id) {
       setSelectedArea({
         ...selectedArea,
@@ -436,7 +436,7 @@ export default function SafetyScorePage() {
       });
     }
   };
-  
+
   // Handle favorite toggle for route
   const handleRouteFavoriteToggle = (route: RouteSafetyScore) => {
     // In a real app, this would make an API call to update the favorite status
@@ -445,7 +445,7 @@ export default function SafetyScorePage() {
         r.id === route.id ? { ...r, isFavorite: !r.isFavorite } : r
       )
     );
-    
+
     if (selectedRoute && selectedRoute.id === route.id) {
       setSelectedRoute({
         ...selectedRoute,
@@ -453,7 +453,7 @@ export default function SafetyScorePage() {
       });
     }
   };
-  
+
   // Handle refresh
   const handleRefresh = () => {
     setLoading(true);
@@ -464,7 +464,7 @@ export default function SafetyScorePage() {
       setLoading(false);
     }, 1000);
   };
-  
+
   // Filter area scores
   const filteredAreaScores = areaScores.filter((area) => {
     // Filter by search query
@@ -474,16 +474,16 @@ export default function SafetyScorePage() {
     ) {
       return false;
     }
-    
+
     // Filter by minimum safety score
     if (area.overallScore < minSafetyScore) return false;
-    
+
     return true;
   });
-  
+
   // Sort area scores by overall score
   const sortedAreaScores = [...filteredAreaScores].sort((a, b) => b.overallScore - a.overallScore);
-  
+
   // Filter route scores
   const filteredRouteScores = routeScores.filter((route) => {
     // Filter by search query
@@ -495,16 +495,16 @@ export default function SafetyScorePage() {
     ) {
       return false;
     }
-    
+
     // Filter by minimum safety score
     if (route.overallScore < minSafetyScore) return false;
-    
+
     return true;
   });
-  
+
   // Sort route scores by overall score
   const sortedRouteScores = [...filteredRouteScores].sort((a, b) => b.overallScore - a.overallScore);
-  
+
   // Initialize data on component mount
   useEffect(() => {
     // In a real app, this would fetch data from an API
@@ -514,12 +514,12 @@ export default function SafetyScorePage() {
       setLoading(false);
     }, 1000);
   }, []);
-  
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ mb: 2 }}>
-        <Button 
-          component={Link} 
+        <Button
+          component={Link}
           href="/safety"
           startIcon={<ArrowBack />}
           sx={{ mb: 2 }}
@@ -527,23 +527,23 @@ export default function SafetyScorePage() {
           Back to Safety Hub
         </Button>
       </Box>
-      
+
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Safety Score
         </Typography>
-        
+
         <Typography variant="body1" gutterBottom>
           Check the safety scores for different areas and routes. Safety scores are calculated based on various factors including crime rates, lighting, crowdedness, traffic safety, and proximity to emergency services.
         </Typography>
       </Box>
-      
+
       {/* Emergency Reminder */}
-      <Paper 
-        sx={{ 
-          p: 3, 
-          mb: 4, 
-          bgcolor: 'error.light', 
+      <Paper
+        sx={{
+          p: 3,
+          mb: 4,
+          bgcolor: 'error.light',
           color: 'error.contrastText',
         }}
       >
@@ -559,11 +559,11 @@ export default function SafetyScorePage() {
           </Box>
         </Box>
       </Paper>
-      
+
       {/* Filters */}
       <Paper sx={{ p: 2, mb: 4 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <TextField
               fullWidth
               label="Search areas or routes"
@@ -575,8 +575,8 @@ export default function SafetyScorePage() {
               }}
             />
           </Grid>
-          
-          <Grid item xs={12} md={4}>
+
+          <Grid size={{ xs: 12, sm: 4 }}>
             <Typography id="safety-score-slider" gutterBottom>
               Minimum Safety Score: {minSafetyScore}
             </Typography>
@@ -591,11 +591,11 @@ export default function SafetyScorePage() {
               max={100}
             />
           </Grid>
-          
-          <Grid item xs={12} md={4}>
+
+          <Grid size={{ xs: 12, sm: 4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography variant="body2">Time of Day:</Typography>
-              
+
               <Tooltip title="Morning (6 AM - 12 PM)">
                 <Chip
                   icon={<LightMode />}
@@ -605,7 +605,7 @@ export default function SafetyScorePage() {
                   variant={timeOfDay === 'morning' ? 'filled' : 'outlined'}
                 />
               </Tooltip>
-              
+
               <Tooltip title="Afternoon (12 PM - 5 PM)">
                 <Chip
                   icon={<LightMode />}
@@ -615,7 +615,7 @@ export default function SafetyScorePage() {
                   variant={timeOfDay === 'afternoon' ? 'filled' : 'outlined'}
                 />
               </Tooltip>
-              
+
               <Tooltip title="Evening (5 PM - 9 PM)">
                 <Chip
                   icon={<Nightlight />}
@@ -625,7 +625,7 @@ export default function SafetyScorePage() {
                   variant={timeOfDay === 'evening' ? 'filled' : 'outlined'}
                 />
               </Tooltip>
-              
+
               <Tooltip title="Night (9 PM - 6 AM)">
                 <Chip
                   icon={<Nightlight />}
@@ -635,7 +635,7 @@ export default function SafetyScorePage() {
                   variant={timeOfDay === 'night' ? 'filled' : 'outlined'}
                 />
               </Tooltip>
-              
+
               <Tooltip title="Refresh data">
                 <IconButton onClick={handleRefresh} color="primary">
                   <Refresh />
@@ -645,7 +645,7 @@ export default function SafetyScorePage() {
           </Grid>
         </Grid>
       </Paper>
-      
+
       {/* Tabs */}
       <Box sx={{ mb: 4 }}>
         <Tabs value={tabValue} onChange={handleTabChange} centered>
@@ -653,11 +653,11 @@ export default function SafetyScorePage() {
           <Tab icon={<DirectionsCar />} label="Routes" />
         </Tabs>
       </Box>
-      
+
       {/* Content */}
       <Grid container spacing={3}>
         {/* List */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ height: 500, overflow: 'auto' }}>
             {loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -689,9 +689,9 @@ export default function SafetyScorePage() {
                     </TableHead>
                     <TableBody>
                       {sortedAreaScores.map((area) => (
-                        <TableRow 
-                          key={area.id} 
-                          hover 
+                        <TableRow
+                          key={area.id}
+                          hover
                           onClick={() => handleAreaSelect(area)}
                           selected={selectedArea?.id === area.id}
                           sx={{ cursor: 'pointer' }}
@@ -706,10 +706,10 @@ export default function SafetyScorePage() {
                           </TableCell>
                           <TableCell align="center">
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <Typography 
-                                variant="body1" 
-                                sx={{ 
-                                  fontWeight: 'bold', 
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  fontWeight: 'bold',
                                   color: getScoreColor(area.overallScore),
                                 }}
                               >
@@ -719,10 +719,10 @@ export default function SafetyScorePage() {
                           </TableCell>
                           <TableCell align="center">
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <Typography 
-                                variant="body1" 
-                                sx={{ 
-                                  fontWeight: 'bold', 
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  fontWeight: 'bold',
                                   color: getScoreColor(area.timeOfDay[timeOfDay]),
                                 }}
                               >
@@ -737,7 +737,7 @@ export default function SafetyScorePage() {
                           </TableCell>
                           <TableCell align="center">
                             <Tooltip title={area.isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
-                              <IconButton 
+                              <IconButton
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleAreaFavoriteToggle(area);
@@ -747,10 +747,10 @@ export default function SafetyScorePage() {
                                 {area.isFavorite ? <Star /> : <StarBorder />}
                               </IconButton>
                             </Tooltip>
-                            
+
                             <Tooltip title="View on map">
-                              <IconButton 
-                                component={Link} 
+                              <IconButton
+                                component={Link}
                                 href={`/safety/map?area=${area.id}`}
                                 onClick={(e) => e.stopPropagation()}
                                 color="primary"
@@ -787,9 +787,9 @@ export default function SafetyScorePage() {
                     </TableHead>
                     <TableBody>
                       {sortedRouteScores.map((route) => (
-                        <TableRow 
-                          key={route.id} 
-                          hover 
+                        <TableRow
+                          key={route.id}
+                          hover
                           onClick={() => handleRouteSelect(route)}
                           selected={selectedRoute?.id === route.id}
                           sx={{ cursor: 'pointer' }}
@@ -809,10 +809,10 @@ export default function SafetyScorePage() {
                           </TableCell>
                           <TableCell align="center">
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <Typography 
-                                variant="body1" 
-                                sx={{ 
-                                  fontWeight: 'bold', 
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  fontWeight: 'bold',
                                   color: getScoreColor(route.overallScore),
                                 }}
                               >
@@ -822,10 +822,10 @@ export default function SafetyScorePage() {
                           </TableCell>
                           <TableCell align="center">
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <Typography 
-                                variant="body1" 
-                                sx={{ 
-                                  fontWeight: 'bold', 
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  fontWeight: 'bold',
                                   color: getScoreColor(route.timeOfDay[timeOfDay]),
                                 }}
                               >
@@ -843,7 +843,7 @@ export default function SafetyScorePage() {
                           </TableCell>
                           <TableCell align="center">
                             <Tooltip title={route.isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
-                              <IconButton 
+                              <IconButton
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleRouteFavoriteToggle(route);
@@ -853,10 +853,10 @@ export default function SafetyScorePage() {
                                 {route.isFavorite ? <Star /> : <StarBorder />}
                               </IconButton>
                             </Tooltip>
-                            
+
                             <Tooltip title="View on map">
-                              <IconButton 
-                                component={Link} 
+                              <IconButton
+                                component={Link}
                                 href={`/routes?route=${route.id}`}
                                 onClick={(e) => e.stopPropagation()}
                                 color="primary"
@@ -874,29 +874,29 @@ export default function SafetyScorePage() {
             )}
           </Paper>
         </Grid>
-        
+
         {/* Details */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ p: 3, height: 500, overflow: 'auto' }}>
             {selectedArea ? (
               // Area Details
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <Typography variant="h5">{selectedArea.name}</Typography>
-                  
+
                   <Box>
                     <Tooltip title={selectedArea.isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
-                      <IconButton 
+                      <IconButton
                         onClick={() => handleAreaFavoriteToggle(selectedArea)}
                         color={selectedArea.isFavorite ? 'warning' : 'default'}
                       >
                         {selectedArea.isFavorite ? <Star /> : <StarBorder />}
                       </IconButton>
                     </Tooltip>
-                    
+
                     <Tooltip title="View on map">
-                      <IconButton 
-                        component={Link} 
+                      <IconButton
+                        component={Link}
                         href={`/safety/map?area=${selectedArea.id}`}
                         color="primary"
                       >
@@ -905,28 +905,28 @@ export default function SafetyScorePage() {
                     </Tooltip>
                   </Box>
                 </Box>
-                
+
                 <Divider sx={{ mb: 2 }} />
-                
+
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Card sx={{ mb: 2 }}>
                       <CardContent>
                         <Typography variant="h6" gutterBottom>
                           Overall Safety Score
                         </Typography>
-                        
+
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
-                          <Box 
-                            sx={{ 
-                              position: 'relative', 
+                          <Box
+                            sx={{
+                              position: 'relative',
                               display: 'inline-flex',
                               mr: 2,
                             }}
                           >
-                            <CircularProgress 
-                              variant="determinate" 
-                              value={selectedArea.overallScore} 
+                            <CircularProgress
+                              variant="determinate"
+                              value={selectedArea.overallScore}
                               size={80}
                               thickness={5}
                               sx={{ color: getScoreColor(selectedArea.overallScore) }}
@@ -952,7 +952,7 @@ export default function SafetyScorePage() {
                               </Typography>
                             </Box>
                           </Box>
-                          
+
                           <Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               {getTrendIcon(selectedArea.trend)}
@@ -960,11 +960,11 @@ export default function SafetyScorePage() {
                                 {selectedArea.trend.charAt(0).toUpperCase() + selectedArea.trend.slice(1)}
                               </Typography>
                             </Box>
-                            
+
                             <Typography variant="body2" color="text.secondary">
                               Based on {selectedArea.reportCount} reports
                             </Typography>
-                            
+
                             <Typography variant="body2" color="text.secondary">
                               Last updated: {formatDate(selectedArea.lastUpdated)}
                             </Typography>
@@ -972,22 +972,22 @@ export default function SafetyScorePage() {
                         </Box>
                       </CardContent>
                     </Card>
-                    
+
                     <Card>
                       <CardContent>
                         <Typography variant="h6" gutterBottom>
                           Time of Day Safety
                         </Typography>
-                        
+
                         <Grid container spacing={1}>
-                          <Grid item xs={6}>
+                          <Grid size={{ xs: 6 }}>
                             <Box sx={{ textAlign: 'center', p: 1 }}>
                               <LightMode sx={{ color: getScoreColor(selectedArea.timeOfDay.morning) }} />
                               <Typography variant="body2">Morning</Typography>
-                              <Typography 
-                                variant="body1" 
-                                sx={{ 
-                                  fontWeight: 'bold', 
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  fontWeight: 'bold',
                                   color: getScoreColor(selectedArea.timeOfDay.morning),
                                 }}
                               >
@@ -995,15 +995,15 @@ export default function SafetyScorePage() {
                               </Typography>
                             </Box>
                           </Grid>
-                          
-                          <Grid item xs={6}>
+
+                          <Grid size={{ xs: 6 }}>
                             <Box sx={{ textAlign: 'center', p: 1 }}>
                               <LightMode sx={{ color: getScoreColor(selectedArea.timeOfDay.afternoon) }} />
                               <Typography variant="body2">Afternoon</Typography>
-                              <Typography 
-                                variant="body1" 
-                                sx={{ 
-                                  fontWeight: 'bold', 
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  fontWeight: 'bold',
                                   color: getScoreColor(selectedArea.timeOfDay.afternoon),
                                 }}
                               >
@@ -1011,15 +1011,15 @@ export default function SafetyScorePage() {
                               </Typography>
                             </Box>
                           </Grid>
-                          
-                          <Grid item xs={6}>
+
+                          <Grid size={{ xs: 6 }}>
                             <Box sx={{ textAlign: 'center', p: 1 }}>
                               <Nightlight sx={{ color: getScoreColor(selectedArea.timeOfDay.evening) }} />
                               <Typography variant="body2">Evening</Typography>
-                              <Typography 
-                                variant="body1" 
-                                sx={{ 
-                                  fontWeight: 'bold', 
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  fontWeight: 'bold',
                                   color: getScoreColor(selectedArea.timeOfDay.evening),
                                 }}
                               >
@@ -1027,15 +1027,15 @@ export default function SafetyScorePage() {
                               </Typography>
                             </Box>
                           </Grid>
-                          
-                          <Grid item xs={6}>
+
+                          <Grid size={{ xs: 6 }}>
                             <Box sx={{ textAlign: 'center', p: 1 }}>
                               <Nightlight sx={{ color: getScoreColor(selectedArea.timeOfDay.night) }} />
                               <Typography variant="body2">Night</Typography>
-                              <Typography 
-                                variant="body1" 
-                                sx={{ 
-                                  fontWeight: 'bold', 
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  fontWeight: 'bold',
                                   color: getScoreColor(selectedArea.timeOfDay.night),
                                 }}
                               >
@@ -1047,88 +1047,88 @@ export default function SafetyScorePage() {
                       </CardContent>
                     </Card>
                   </Grid>
-                  
-                  <Grid item xs={12} md={6}>
+
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Card>
                       <CardContent>
                         <Typography variant="h6" gutterBottom>
                           Safety Metrics
                         </Typography>
-                        
+
                         <Box sx={{ mb: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                             <LocalPolice sx={{ mr: 1, color: getScoreColor(selectedArea.metrics.crimeRate) }} />
                             <Typography variant="body2">Crime Rate</Typography>
                           </Box>
-                          <Rating 
-                            value={selectedArea.metrics.crimeRate / 20} 
-                            readOnly 
-                            precision={0.5} 
+                          <Rating
+                            value={selectedArea.metrics.crimeRate / 20}
+                            readOnly
+                            precision={0.5}
                             sx={{ color: getScoreColor(selectedArea.metrics.crimeRate) }}
                           />
                         </Box>
-                        
+
                         <Box sx={{ mb: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                             <LightMode sx={{ mr: 1, color: getScoreColor(selectedArea.metrics.lighting) }} />
                             <Typography variant="body2">Lighting</Typography>
                           </Box>
-                          <Rating 
-                            value={selectedArea.metrics.lighting / 20} 
-                            readOnly 
-                            precision={0.5} 
+                          <Rating
+                            value={selectedArea.metrics.lighting / 20}
+                            readOnly
+                            precision={0.5}
                             sx={{ color: getScoreColor(selectedArea.metrics.lighting) }}
                           />
                         </Box>
-                        
+
                         <Box sx={{ mb: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                             <People sx={{ mr: 1, color: getScoreColor(selectedArea.metrics.crowdedness) }} />
                             <Typography variant="body2">Crowdedness</Typography>
                           </Box>
-                          <Rating 
-                            value={selectedArea.metrics.crowdedness / 20} 
-                            readOnly 
-                            precision={0.5} 
+                          <Rating
+                            value={selectedArea.metrics.crowdedness / 20}
+                            readOnly
+                            precision={0.5}
                             sx={{ color: getScoreColor(selectedArea.metrics.crowdedness) }}
                           />
                         </Box>
-                        
+
                         <Box sx={{ mb: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                             <Traffic sx={{ mr: 1, color: getScoreColor(selectedArea.metrics.trafficSafety) }} />
                             <Typography variant="body2">Traffic Safety</Typography>
                           </Box>
-                          <Rating 
-                            value={selectedArea.metrics.trafficSafety / 20} 
-                            readOnly 
-                            precision={0.5} 
+                          <Rating
+                            value={selectedArea.metrics.trafficSafety / 20}
+                            readOnly
+                            precision={0.5}
                             sx={{ color: getScoreColor(selectedArea.metrics.trafficSafety) }}
                           />
                         </Box>
-                        
+
                         <Box sx={{ mb: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <LocalHospital sx={{ mr: 1, color: getScoreColor(selectedArea.metrics.emergencyServices) }} />
+                            <HealthAndSafety sx={{ mr: 1, color: getScoreColor(selectedArea.metrics.emergencyServices) }} />
                             <Typography variant="body2">Emergency Services</Typography>
                           </Box>
-                          <Rating 
-                            value={selectedArea.metrics.emergencyServices / 20} 
-                            readOnly 
-                            precision={0.5} 
+                          <Rating
+                            value={selectedArea.metrics.emergencyServices / 20}
+                            readOnly
+                            precision={0.5}
                             sx={{ color: getScoreColor(selectedArea.metrics.emergencyServices) }}
                           />
                         </Box>
-                        
+
                         <Box sx={{ mb: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                             <Visibility sx={{ mr: 1, color: getScoreColor(selectedArea.metrics.visibility) }} />
                             <Typography variant="body2">Visibility</Typography>
                           </Box>
-                          <Rating 
-                            value={selectedArea.metrics.visibility / 20} 
-                            readOnly 
-                            precision={0.5} 
+                          <Rating
+                            value={selectedArea.metrics.visibility / 20}
+                            readOnly
+                            precision={0.5}
                             sx={{ color: getScoreColor(selectedArea.metrics.visibility) }}
                           />
                         </Box>
@@ -1136,10 +1136,10 @@ export default function SafetyScorePage() {
                     </Card>
                   </Grid>
                 </Grid>
-                
+
                 <Box sx={{ mt: 2 }}>
-                  <Button 
-                    variant="contained" 
+                  <Button
+                    variant="contained"
                     component={Link}
                     href={`/safety/map?area=${selectedArea.id}`}
                     startIcon={<Map />}
@@ -1154,20 +1154,20 @@ export default function SafetyScorePage() {
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <Typography variant="h5">{selectedRoute.name}</Typography>
-                  
+
                   <Box>
                     <Tooltip title={selectedRoute.isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
-                      <IconButton 
+                      <IconButton
                         onClick={() => handleRouteFavoriteToggle(selectedRoute)}
                         color={selectedRoute.isFavorite ? 'warning' : 'default'}
                       >
                         {selectedRoute.isFavorite ? <Star /> : <StarBorder />}
                       </IconButton>
                     </Tooltip>
-                    
+
                     <Tooltip title="View on map">
-                      <IconButton 
-                        component={Link} 
+                      <IconButton
+                        component={Link}
                         href={`/routes?route=${selectedRoute.id}`}
                         color="primary"
                       >
@@ -1176,32 +1176,32 @@ export default function SafetyScorePage() {
                     </Tooltip>
                   </Box>
                 </Box>
-                
+
                 <Typography variant="subtitle1" gutterBottom>
                   {selectedRoute.startPoint} to {selectedRoute.endPoint}
                 </Typography>
-                
+
                 <Divider sx={{ mb: 2 }} />
-                
+
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Card sx={{ mb: 2 }}>
                       <CardContent>
                         <Typography variant="h6" gutterBottom>
                           Overall Safety Score
                         </Typography>
-                        
+
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
-                          <Box 
-                            sx={{ 
-                              position: 'relative', 
+                          <Box
+                            sx={{
+                              position: 'relative',
                               display: 'inline-flex',
                               mr: 2,
                             }}
                           >
-                            <CircularProgress 
-                              variant="determinate" 
-                              value={selectedRoute.overallScore} 
+                            <CircularProgress
+                              variant="determinate"
+                              value={selectedRoute.overallScore}
                               size={80}
                               thickness={5}
                               sx={{ color: getScoreColor(selectedRoute.overallScore) }}
@@ -1227,7 +1227,7 @@ export default function SafetyScorePage() {
                               </Typography>
                             </Box>
                           </Box>
-                          
+
                           <Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               {getTrendIcon(selectedRoute.trend)}
@@ -1235,19 +1235,19 @@ export default function SafetyScorePage() {
                                 {selectedRoute.trend.charAt(0).toUpperCase() + selectedRoute.trend.slice(1)}
                               </Typography>
                             </Box>
-                            
+
                             <Typography variant="body2" color="text.secondary">
                               Based on {selectedRoute.reportCount} reports
                             </Typography>
-                            
+
                             <Typography variant="body2" color="text.secondary">
                               Last updated: {formatDate(selectedRoute.lastUpdated)}
                             </Typography>
                           </Box>
                         </Box>
-                        
+
                         <Divider sx={{ my: 1 }} />
-                        
+
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Box>
                             <Typography variant="body2" color="text.secondary">
@@ -1257,7 +1257,7 @@ export default function SafetyScorePage() {
                               {selectedRoute.distance} km
                             </Typography>
                           </Box>
-                          
+
                           <Box>
                             <Typography variant="body2" color="text.secondary" align="right">
                               Duration
@@ -1269,22 +1269,22 @@ export default function SafetyScorePage() {
                         </Box>
                       </CardContent>
                     </Card>
-                    
+
                     <Card>
                       <CardContent>
                         <Typography variant="h6" gutterBottom>
                           Time of Day Safety
                         </Typography>
-                        
+
                         <Grid container spacing={1}>
-                          <Grid item xs={6}>
+                          <Grid size={{ xs: 6 }}>
                             <Box sx={{ textAlign: 'center', p: 1 }}>
                               <LightMode sx={{ color: getScoreColor(selectedRoute.timeOfDay.morning) }} />
                               <Typography variant="body2">Morning</Typography>
-                              <Typography 
-                                variant="body1" 
-                                sx={{ 
-                                  fontWeight: 'bold', 
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  fontWeight: 'bold',
                                   color: getScoreColor(selectedRoute.timeOfDay.morning),
                                 }}
                               >
@@ -1292,15 +1292,15 @@ export default function SafetyScorePage() {
                               </Typography>
                             </Box>
                           </Grid>
-                          
-                          <Grid item xs={6}>
+
+                          <Grid size={{ xs: 6 }}>
                             <Box sx={{ textAlign: 'center', p: 1 }}>
                               <LightMode sx={{ color: getScoreColor(selectedRoute.timeOfDay.afternoon) }} />
                               <Typography variant="body2">Afternoon</Typography>
-                              <Typography 
-                                variant="body1" 
-                                sx={{ 
-                                  fontWeight: 'bold', 
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  fontWeight: 'bold',
                                   color: getScoreColor(selectedRoute.timeOfDay.afternoon),
                                 }}
                               >
@@ -1308,15 +1308,15 @@ export default function SafetyScorePage() {
                               </Typography>
                             </Box>
                           </Grid>
-                          
-                          <Grid item xs={6}>
+
+                          <Grid size={{ xs: 6 }}>
                             <Box sx={{ textAlign: 'center', p: 1 }}>
                               <Nightlight sx={{ color: getScoreColor(selectedRoute.timeOfDay.evening) }} />
                               <Typography variant="body2">Evening</Typography>
-                              <Typography 
-                                variant="body1" 
-                                sx={{ 
-                                  fontWeight: 'bold', 
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  fontWeight: 'bold',
                                   color: getScoreColor(selectedRoute.timeOfDay.evening),
                                 }}
                               >
@@ -1324,15 +1324,15 @@ export default function SafetyScorePage() {
                               </Typography>
                             </Box>
                           </Grid>
-                          
-                          <Grid item xs={6}>
+
+                          <Grid size={{ xs: 6 }}>
                             <Box sx={{ textAlign: 'center', p: 1 }}>
                               <Nightlight sx={{ color: getScoreColor(selectedRoute.timeOfDay.night) }} />
                               <Typography variant="body2">Night</Typography>
-                              <Typography 
-                                variant="body1" 
-                                sx={{ 
-                                  fontWeight: 'bold', 
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  fontWeight: 'bold',
                                   color: getScoreColor(selectedRoute.timeOfDay.night),
                                 }}
                               >
@@ -1344,88 +1344,88 @@ export default function SafetyScorePage() {
                       </CardContent>
                     </Card>
                   </Grid>
-                  
-                  <Grid item xs={12} md={6}>
+
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Card>
                       <CardContent>
                         <Typography variant="h6" gutterBottom>
                           Safety Metrics
                         </Typography>
-                        
+
                         <Box sx={{ mb: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                             <LocalPolice sx={{ mr: 1, color: getScoreColor(selectedRoute.metrics.crimeRate) }} />
                             <Typography variant="body2">Crime Rate</Typography>
                           </Box>
-                          <Rating 
-                            value={selectedRoute.metrics.crimeRate / 20} 
-                            readOnly 
-                            precision={0.5} 
+                          <Rating
+                            value={selectedRoute.metrics.crimeRate / 20}
+                            readOnly
+                            precision={0.5}
                             sx={{ color: getScoreColor(selectedRoute.metrics.crimeRate) }}
                           />
                         </Box>
-                        
+
                         <Box sx={{ mb: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                             <LightMode sx={{ mr: 1, color: getScoreColor(selectedRoute.metrics.lighting) }} />
                             <Typography variant="body2">Lighting</Typography>
                           </Box>
-                          <Rating 
-                            value={selectedRoute.metrics.lighting / 20} 
-                            readOnly 
-                            precision={0.5} 
+                          <Rating
+                            value={selectedRoute.metrics.lighting / 20}
+                            readOnly
+                            precision={0.5}
                             sx={{ color: getScoreColor(selectedRoute.metrics.lighting) }}
                           />
                         </Box>
-                        
+
                         <Box sx={{ mb: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                             <People sx={{ mr: 1, color: getScoreColor(selectedRoute.metrics.crowdedness) }} />
                             <Typography variant="body2">Crowdedness</Typography>
                           </Box>
-                          <Rating 
-                            value={selectedRoute.metrics.crowdedness / 20} 
-                            readOnly 
-                            precision={0.5} 
+                          <Rating
+                            value={selectedRoute.metrics.crowdedness / 20}
+                            readOnly
+                            precision={0.5}
                             sx={{ color: getScoreColor(selectedRoute.metrics.crowdedness) }}
                           />
                         </Box>
-                        
+
                         <Box sx={{ mb: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                             <Traffic sx={{ mr: 1, color: getScoreColor(selectedRoute.metrics.trafficSafety) }} />
                             <Typography variant="body2">Traffic Safety</Typography>
                           </Box>
-                          <Rating 
-                            value={selectedRoute.metrics.trafficSafety / 20} 
-                            readOnly 
-                            precision={0.5} 
+                          <Rating
+                            value={selectedRoute.metrics.trafficSafety / 20}
+                            readOnly
+                            precision={0.5}
                             sx={{ color: getScoreColor(selectedRoute.metrics.trafficSafety) }}
                           />
                         </Box>
-                        
+
                         <Box sx={{ mb: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <LocalHospital sx={{ mr: 1, color: getScoreColor(selectedRoute.metrics.emergencyServices) }} />
+                            <HealthAndSafety sx={{ mr: 1, color: getScoreColor(selectedRoute.metrics.emergencyServices) }} />
                             <Typography variant="body2">Emergency Services</Typography>
                           </Box>
-                          <Rating 
-                            value={selectedRoute.metrics.emergencyServices / 20} 
-                            readOnly 
-                            precision={0.5} 
+                          <Rating
+                            value={selectedRoute.metrics.emergencyServices / 20}
+                            readOnly
+                            precision={0.5}
                             sx={{ color: getScoreColor(selectedRoute.metrics.emergencyServices) }}
                           />
                         </Box>
-                        
+
                         <Box sx={{ mb: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                             <Visibility sx={{ mr: 1, color: getScoreColor(selectedRoute.metrics.visibility) }} />
                             <Typography variant="body2">Visibility</Typography>
                           </Box>
-                          <Rating 
-                            value={selectedRoute.metrics.visibility / 20} 
-                            readOnly 
-                            precision={0.5} 
+                          <Rating
+                            value={selectedRoute.metrics.visibility / 20}
+                            readOnly
+                            precision={0.5}
                             sx={{ color: getScoreColor(selectedRoute.metrics.visibility) }}
                           />
                         </Box>
@@ -1433,10 +1433,10 @@ export default function SafetyScorePage() {
                     </Card>
                   </Grid>
                 </Grid>
-                
+
                 <Box sx={{ mt: 2 }}>
-                  <Button 
-                    variant="contained" 
+                  <Button
+                    variant="contained"
                     component={Link}
                     href={`/routes?route=${selectedRoute.id}`}
                     startIcon={<DirectionsCar />}
@@ -1450,11 +1450,11 @@ export default function SafetyScorePage() {
               // No selection
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                 <Shield sx={{ fontSize: 80, color: 'primary.light', mb: 2 }} />
-                
+
                 <Typography variant="h6" gutterBottom align="center">
                   Select an area or route to view detailed safety information
                 </Typography>
-                
+
                 <Typography variant="body1" align="center" color="text.secondary">
                   Safety scores are calculated based on various factors including crime rates, lighting, crowdedness, traffic safety, and proximity to emergency services.
                 </Typography>
@@ -1463,19 +1463,19 @@ export default function SafetyScorePage() {
           </Paper>
         </Grid>
       </Grid>
-      
+
       <Box sx={{ mt: 4 }}>
         <Alert severity="info">
           <Typography variant="subtitle1" gutterBottom>
             How Safety Scores are Calculated
           </Typography>
-          
+
           <Typography variant="body2" paragraph>
             Safety scores are calculated using a combination of the following factors:
           </Typography>
-          
+
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <Box sx={{ display: 'flex', mb: 1 }}>
                 <LocalPolice sx={{ mr: 1, color: 'primary.main' }} />
                 <Typography variant="body2">
@@ -1483,8 +1483,8 @@ export default function SafetyScorePage() {
                 </Typography>
               </Box>
             </Grid>
-            
-            <Grid item xs={12} sm={6} md={4}>
+
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <Box sx={{ display: 'flex', mb: 1 }}>
                 <LightMode sx={{ mr: 1, color: 'primary.main' }} />
                 <Typography variant="body2">
@@ -1492,8 +1492,8 @@ export default function SafetyScorePage() {
                 </Typography>
               </Box>
             </Grid>
-            
-            <Grid item xs={12} sm={6} md={4}>
+
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <Box sx={{ display: 'flex', mb: 1 }}>
                 <People sx={{ mr: 1, color: 'primary.main' }} />
                 <Typography variant="body2">
@@ -1501,8 +1501,8 @@ export default function SafetyScorePage() {
                 </Typography>
               </Box>
             </Grid>
-            
-            <Grid item xs={12} sm={6} md={4}>
+
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <Box sx={{ display: 'flex', mb: 1 }}>
                 <Traffic sx={{ mr: 1, color: 'primary.main' }} />
                 <Typography variant="body2">
@@ -1510,17 +1510,17 @@ export default function SafetyScorePage() {
                 </Typography>
               </Box>
             </Grid>
-            
-            <Grid item xs={12} sm={6} md={4}>
+
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <Box sx={{ display: 'flex', mb: 1 }}>
-                <LocalHospital sx={{ mr: 1, color: 'primary.main' }} />
+                <HealthAndSafety sx={{ mr: 1, color: 'primary.main' }} />
                 <Typography variant="body2">
                   <strong>Emergency Services</strong>: Proximity and response time of police, fire, and medical services.
                 </Typography>
               </Box>
             </Grid>
-            
-            <Grid item xs={12} sm={6} md={4}>
+
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <Box sx={{ display: 'flex', mb: 1 }}>
                 <Visibility sx={{ mr: 1, color: 'primary.main' }} />
                 <Typography variant="body2">
@@ -1529,13 +1529,13 @@ export default function SafetyScorePage() {
               </Box>
             </Grid>
           </Grid>
-          
+
           <Typography variant="body2" sx={{ mt: 2 }}>
             Safety scores are updated regularly based on new data and user reports. The scores may vary by time of day and are intended to provide a general indication of safety, not a guarantee.
           </Typography>
         </Alert>
       </Box>
-      
+
       <Box sx={{ mt: 6, mb: 2 }}>
         <Divider />
         <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>

@@ -308,7 +308,7 @@ export default function SafetyResourcesPage() {
                 <li>Follow your emergency plan</li>
                 <li>Listen to official information sources</li>
                 <li>Evacuate if instructed to do so</li>
-                <li>Help others if it's safe to do so</li>
+                <li>Help others if it&#39;s safe to do so</li>
               </ul>
             </Paper>
           </Grid>
@@ -341,7 +341,7 @@ export default function SafetyResourcesPage() {
         <Grid container spacing={3} alignItems="center">
           <Grid item xs={12} md={8}>
             <Typography variant="h5" gutterBottom>
-              Don't Wait Until It's Too Late
+              Don&#39;t Wait Until It&#39;s Too Late
             </Typography>
             
             <Typography variant="body1" paragraph>

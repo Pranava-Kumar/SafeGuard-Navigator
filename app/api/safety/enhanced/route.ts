@@ -1,36 +1,48 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { withAuth, withRateLimit, validateInput, getClientIP, createAPIResponse, withErrorHandling, CoordinatesSchema } from "@/lib/middleware";
-import { getSafetyScore } from "@/lib/safety-score";
-import { dataIntegration } from "@/lib/data-integration";
-import { db } from "@/lib/db";
+/**
+ * Enhanced Safety Score API Endpoint
+ * Implements the multi-factor SafetyScore algorithm with real-world data integration
+ * Compatible with DPDP Act 2023 and India-specific requirements
+ */
 
-// Request validation schemas
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { 
+  calculateComprehensiveSafetyScore, 
+  generateSafetyRecommendations,
+  getSafetyFactorDetails
+} from '@/lib/safety/comprehensiveSafety';
+import { 
+  SafetyScoreContext,
+  DEFAULT_WEIGHTS
+} from '@/lib/safety/types';
+
+// Validation schema for safety score requests
 const SafetyScoreRequestSchema = z.object({
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
   userType: z.enum(['pedestrian', 'two_wheeler', 'cyclist', 'public_transport']).optional().default('pedestrian'),
   timeOfDay: z.enum(['morning', 'afternoon', 'evening', 'night']).optional().default('afternoon'),
-  refreshData: z.boolean().optional().default(false)
+  weatherCondition: z.enum(['clear', 'cloudy', 'rainy', 'stormy']).optional().default('clear')
 });
 
+// Batch safety score request schema
 const BatchSafetyScoreSchema = z.object({
-  locations: z.array(CoordinatesSchema).max(50), // Limit batch size
+  locations: z.array(z.object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180)
+  })).max(50), // Limit batch size
   userType: z.enum(['pedestrian', 'two_wheeler', 'cyclist', 'public_transport']).optional().default('pedestrian'),
-  timeOfDay: z.enum(['morning', 'afternoon', 'evening', 'night']).optional().default('afternoon')
+  timeOfDay: z.enum(['morning', 'afternoon', 'evening', 'night']).optional().default('afternoon'),
+  weatherCondition: z.enum(['clear', 'cloudy', 'rainy', 'stormy']).optional().default('clear')
 });
 
 type SafetyScoreRequest = z.infer<typeof SafetyScoreRequestSchema>;
 type BatchSafetyScoreRequest = z.infer<typeof BatchSafetyScoreSchema>;
 
-
-
-
-
 /**
  * Generate safety recommendations based on safety score result
  */
-function generateSafetyRecommendations(safetyResult: any): string[] {
+function generateSafetyRecommendationsFromResult(safetyResult: any): string[] {
   const recommendations: string[] = [];
   const { overall, factors } = safetyResult;
 
@@ -71,140 +83,122 @@ function generateSafetyRecommendations(safetyResult: any): string[] {
   return recommendations.slice(0, 6); // Limit to 6 recommendations
 }
 
-
-
 /**
  * POST /api/safety/enhanced
  * Calculate safety score with optional batch processing
  */
 export async function POST(request: NextRequest) {
-  return withErrorHandling(async () => {
-    // Rate limiting
-    const clientIP = getClientIP(request);
-    const rateLimitResult = withRateLimit(clientIP, 50, 15); // 50 requests per 15 minutes for POST
-    if (!rateLimitResult.allowed) {
-      return rateLimitResult.error!;
-    }
-
-    // Authentication required for POST
-    const { user, error: authError } = await withAuth(request);
-    if (authError) {
-      return authError;
-    }
-
-    try {
-      const body = await request.json();
+  try {
+    const body = await request.json();
+    
+    // Check if it's a batch request
+    if (body.locations && Array.isArray(body.locations)) {
+      // Batch processing
+      const validation = BatchSafetyScoreSchema.safeParse(body);
       
-      // Check if it's a batch request
-      if (body.locations && Array.isArray(body.locations)) {
-        // Batch processing
-        const { data: validatedData, error: validationError } = validateInput(
-          body,
-          BatchSafetyScoreSchema
+      if (!validation.success) {
+        return NextResponse.json(
+          { 
+            success: false, 
+            message: 'Invalid request data',
+            errors: validation.error.flatten()
+          },
+          { status: 400 }
         );
-
-        if (validationError) {
-          return validationError;
-        }
-
-        const { locations, userType, timeOfDay } = validatedData;
-        const results = [];
-
-        for (const location of locations) {
+      }
+      
+      const { locations, userType, timeOfDay, weatherCondition } = validation.data;
+      
+      // Process all locations in parallel
+      const results = await Promise.all(
+        locations.map(async (location) => {
           try {
-            const safetyResult = await getSafetyScore(
-              location.latitude,
-              location.longitude,
-              userType as any,
-              timeOfDay as any
+            const context: SafetyScoreContext = {
+              userType,
+              timeOfDay,
+              weatherCondition
+            };
+            
+            const safetyResult = await calculateComprehensiveSafetyScore(
+              [location.lat, location.lng],
+              context
             );
             
-            results.push({
-              location: {
-                latitude: location.latitude,
-                longitude: location.longitude
-              },
+            return {
+              lat: location.lat,
+              lng: location.lng,
               score: safetyResult.overall,
               factors: safetyResult.factors,
               confidence: safetyResult.confidence,
-              recommendations: generateSafetyRecommendations(safetyResult)
-            });
+              recommendations: generateSafetyRecommendations(safetyResult.factors),
+              factorDetails: getSafetyFactorDetails(safetyResult.factors)
+            };
           } catch (error) {
-            console.error(`Error calculating safety score for ${location.latitude}, ${location.longitude}:`, error);
-            results.push({
-              location: {
-                latitude: location.latitude,
-                longitude: location.longitude
-              },
+            console.error(`Error calculating safety score for ${location.lat},${location.lng}:`, error);
+            return {
+              lat: location.lat,
+              lng: location.lng,
               error: 'Failed to calculate safety score'
-            });
+            };
           }
-        }
-
-        return NextResponse.json(createAPIResponse(true, {
-          results,
-          totalLocations: locations.length,
-          successfulCalculations: results.filter(r => !r.error).length,
-          userType,
-          timeOfDay
-        }));
-      } else {
-        // Single location request
-        const { data: validatedData, error: validationError } = validateInput(
-          body,
-          SafetyScoreRequestSchema
+        })
+      );
+      
+      return NextResponse.json({
+        success: true,
+        data: results,
+        message: 'Batch safety scores calculated successfully'
+      });
+    } else {
+      // Single location processing
+      const validation = SafetyScoreRequestSchema.safeParse(body);
+      
+      if (!validation.success) {
+        return NextResponse.json(
+          { 
+            success: false, 
+            message: 'Invalid request data',
+            errors: validation.error.flatten()
+          },
+          { status: 400 }
         );
-
-        if (validationError) {
-          return validationError;
-        }
-
-        const { latitude, longitude, userType, timeOfDay, refreshData } = validatedData;
-
-        // Refresh data from external sources if requested (premium feature)
-        if (refreshData && (user?.role === 'premium' || user?.role === 'admin')) {
-          await dataIntegration.refreshLocationData(latitude, longitude);
-        }
-
-        // Get comprehensive safety score using real data
-        const safetyResult = await getSafetyScore(
-          latitude,
-          longitude,
-          userType as any,
-          timeOfDay as any
-        );
-
-        // Generate recommendations
-        const recommendations = generateSafetyRecommendations(safetyResult);
-
-        const response = {
+      }
+      
+      const { lat, lng, userType, timeOfDay, weatherCondition } = validation.data;
+      
+      const context: SafetyScoreContext = {
+        userType,
+        timeOfDay,
+        weatherCondition
+      };
+      
+      const safetyResult = await calculateComprehensiveSafetyScore([lat, lng], context);
+      
+      const response = {
+        success: true,
+        data: {
           score: safetyResult.overall,
           factors: safetyResult.factors,
           confidence: safetyResult.confidence,
-          recommendations,
-          contextualFactors: safetyResult.contextualFactors,
-          metadata: {
-            algorithm: 'SafeRoute Multi-Factor v1.0',
-            version: '1.0.0',
-            dataSources: safetyResult.sources,
-            lastUpdated: safetyResult.lastUpdated.toISOString(),
-            userType,
-            timeOfDay,
-            userId: user?.id
-          }
-        };
-
-        return NextResponse.json(createAPIResponse(true, response));
-      }
-
-    } catch (error) {
-      console.error('POST enhanced safety score error:', error);
-      return NextResponse.json(
-        createAPIResponse(false, null, 'Failed to process safety score request'),
-        { status: 500 }
-      );
+          weights: DEFAULT_WEIGHTS,
+          recommendations: generateSafetyRecommendations(safetyResult.factors),
+          factorDetails: getSafetyFactorDetails(safetyResult.factors)
+        },
+        message: 'Safety score calculated successfully'
+      };
+      
+      return NextResponse.json(response);
     }
-  });
+  } catch (error) {
+    console.error('POST enhanced safety score error:', error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: 'Failed to process safety score request' 
+      },
+      { status: 500 }
+    );
+  }
 }
 
 /**
@@ -212,102 +206,98 @@ export async function POST(request: NextRequest) {
  * Get enhanced safety score for a single location with real-world data integration
  */
 export async function GET(request: NextRequest) {
-  return withErrorHandling(async () => {
-    // Rate limiting
-    const clientIP = getClientIP(request);
-    const rateLimitResult = withRateLimit(clientIP, 100, 15); // 100 requests per 15 minutes
-    if (!rateLimitResult.allowed) {
-      return rateLimitResult.error!;
+  try {
+    const { searchParams } = new URL(request.url);
+    
+    // Parse and validate query parameters
+    const queryData = {
+      lat: parseFloat(searchParams.get('lat') || '0'),
+      lng: parseFloat(searchParams.get('lng') || '0'),
+      userType: (searchParams.get('userType') || 'pedestrian') as 'pedestrian' | 'two_wheeler' | 'cyclist' | 'public_transport',
+      timeOfDay: (searchParams.get('timeOfDay') || 'afternoon') as 'morning' | 'afternoon' | 'evening' | 'night',
+      weatherCondition: (searchParams.get('weatherCondition') || 'clear') as 'clear' | 'cloudy' | 'rainy' | 'stormy'
+    };
+    
+    const { data: validatedData, error: validationError } = validateInput(
+      queryData,
+      SafetyScoreRequestSchema
+    );
+    
+    if (validationError) {
+      return validationError;
     }
-
-    // Authentication (optional for GET, but tracks usage)
-    const { user } = await withAuth(request);
-    const isAuthenticated = !!user;
-
-    try {
-      const { searchParams } = new URL(request.url);
-      
-      // Parse and validate query parameters
-      const queryData = {
-        latitude: parseFloat(searchParams.get('lat') || '0'),
-        longitude: parseFloat(searchParams.get('lng') || '0'),
-        userType: searchParams.get('userType') || 'pedestrian',
-        timeOfDay: searchParams.get('timeOfDay') || 'afternoon',
-        refreshData: searchParams.get('refreshData') === 'true'
-      };
-
-      const { data: validatedData, error: validationError } = validateInput(
-        queryData,
-        SafetyScoreRequestSchema
-      );
-
-      if (validationError) {
-        return validationError;
-      }
-
-      const { latitude, longitude, userType, timeOfDay, refreshData } = validatedData;
-
-      // Refresh data from external sources if requested (premium feature)
-      if (refreshData && isAuthenticated && (user?.role === 'premium' || user?.role === 'admin')) {
-        await dataIntegration.refreshLocationData(latitude, longitude);
-      }
-
-      // Get comprehensive safety score using real data
-      const safetyResult = await getSafetyScore(
-        latitude,
-        longitude,
-        userType as any,
-        timeOfDay as any
-      );
-
-      // Get additional context from database
-      const recentIncidents = await db.incidentReport.count({
-        where: {
-          latitude: { gte: latitude - 0.01, lte: latitude + 0.01 },
-          longitude: { gte: longitude - 0.01, lte: longitude + 0.01 },
-          createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }, // Last 30 days
-          status: { in: ['pending', 'verified'] }
-        }
-      });
-
-      const nearbyPOIs = await db.pOIData.count({
-        where: {
-          latitude: { gte: latitude - 0.005, lte: latitude + 0.005 },
-          longitude: { gte: longitude - 0.005, lte: longitude + 0.005 },
-          isActive: true
-        }
-      });
-
-      // Generate recommendations based on safety score and factors
-      const recommendations = generateSafetyRecommendations(safetyResult);
-
-      const response = {
+    
+    const { lat, lng, userType, timeOfDay, weatherCondition } = validatedData;
+    
+    // Get comprehensive safety score using real data
+    const safetyResult = await calculateComprehensiveSafetyScore(
+      [lat, lng],
+      { userType, timeOfDay, weatherCondition }
+    );
+    
+    // Generate recommendations based on safety score and factors
+    const recommendations = generateSafetyRecommendations(safetyResult.factors);
+    
+    const response = {
+      success: true,
+      data: {
         score: safetyResult.overall,
         factors: safetyResult.factors,
         confidence: safetyResult.confidence,
+        weights: DEFAULT_WEIGHTS,
         recommendations,
-        contextualFactors: safetyResult.contextualFactors,
-        metadata: {
-          algorithm: 'SafeRoute Multi-Factor v1.0',
-          version: '1.0.0',
-          dataSources: safetyResult.sources,
-          lastUpdated: safetyResult.lastUpdated.toISOString(),
-          recentIncidents,
-          nearbyPOIs,
-          userType,
-          timeOfDay,
-          isAuthenticated
-        }
+        factorDetails: getSafetyFactorDetails(safetyResult.factors)
+      },
+      message: 'Safety score retrieved successfully'
+    };
+    
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error('Enhanced safety score error:', error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: 'Failed to calculate safety score' 
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// Helper function to validate input
+function validateInput<T>(
+  data: any,
+  schema: z.ZodSchema<T>
+): { data: T; error?: NextResponse } {
+  try {
+    const result = schema.safeParse(data);
+    
+    if (!result.success) {
+      return {
+        data: undefined as any,
+        error: NextResponse.json(
+          {
+            success: false,
+            message: 'Invalid input data',
+            errors: result.error.flatten()
+          },
+          { status: 400 }
+        )
       };
-
-      return NextResponse.json(createAPIResponse(true, response));
-
-    } catch (error) {
-      console.error('Enhanced safety score error:', error);
-      return NextResponse.json(
-        createAPIResponse(false, null, 'Failed to calculate safety score'),
-        { status: 500 }
-      );
     }
-  });
+    
+    return { data: result.data };
+  } catch (error) {
+    return {
+      data: undefined as any,
+      error: NextResponse.json(
+        {
+          success: false,
+          message: 'Input validation failed',
+          error: error instanceof Error ? error.message : 'Unknown validation error'
+        },
+        { status: 400 }
+      )
+    };
+  }
 }

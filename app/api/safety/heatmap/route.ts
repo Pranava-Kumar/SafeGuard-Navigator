@@ -183,8 +183,8 @@ export async function GET(request: NextRequest) {
           latitude: point.latitude,
           longitude: point.longitude,
           score: point.overallScore,
-          weight: point.confidence * 0.8,
-          confidence: point.confidence
+          weight: (point.confidence || 0.5) * 0.8, // Use 0.5 as default if confidence is null
+          confidence: point.confidence || 0.5 // Use 0.5 as default if confidence is null
         }));
       } else {
         // Generate fresh heatmap data

@@ -166,7 +166,7 @@ export default function SafetyPage() {
         
         <Grid container spacing={3}>
           {featuredFeatures.map((feature) => (
-            <Grid item xs={12} md={4} key={feature.id}>
+            <Grid size={{ xs:12, md:4 }} key={feature.id}>
               <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardActionArea 
                   component={Link} 
@@ -215,7 +215,7 @@ export default function SafetyPage() {
         
         <Grid container spacing={3}>
           {otherFeatures.map((feature) => (
-            <Grid item xs={12} sm={6} md={3} key={feature.id}>
+            <Grid size={{ xs:12, sm:6, md:3 }} key={feature.id}>
               <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardActionArea 
                   component={Link} 
@@ -249,7 +249,7 @@ export default function SafetyPage() {
         </Typography>
         
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs:12, md:6 }}>
             <Paper sx={{ p: 3, height: '100%' }}>
               <Typography variant="h6" gutterBottom>
                 Why Safety Preparedness is Important
@@ -280,7 +280,7 @@ export default function SafetyPage() {
             </Paper>
           </Grid>
           
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs:12, md:6 }}>
             <Paper sx={{ p: 3, height: '100%' }}>
               <Typography variant="h6" gutterBottom>
                 How SafeGuard Navigators Helps You Stay Safe
@@ -291,7 +291,7 @@ export default function SafetyPage() {
               </Typography>
               
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs:12, sm:6 }}>
                   <Box sx={{ display: 'flex', mb: 2 }}>
                     <LocationOn sx={{ mr: 1, color: 'primary.main' }} />
                     <Typography variant="body2">
@@ -300,7 +300,7 @@ export default function SafetyPage() {
                   </Box>
                 </Grid>
                 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs:12, sm:6 }}>
                   <Box sx={{ display: 'flex', mb: 2 }}>
                     <Notifications sx={{ mr: 1, color: 'primary.main' }} />
                     <Typography variant="body2">
@@ -309,7 +309,7 @@ export default function SafetyPage() {
                   </Box>
                 </Grid>
                 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs:12, sm:6 }}>
                   <Box sx={{ display: 'flex', mb: 2 }}>
                     <MapIcon sx={{ mr: 1, color: 'primary.main' }} />
                     <Typography variant="body2">
@@ -318,7 +318,7 @@ export default function SafetyPage() {
                   </Box>
                 </Grid>
                 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs:12, sm:6 }}>
                   <Box sx={{ display: 'flex', mb: 2 }}>
                     <Lightbulb sx={{ mr: 1, color: 'primary.main' }} />
                     <Typography variant="body2">
@@ -345,7 +345,7 @@ export default function SafetyPage() {
       {/* Call to Action */}
       <Paper sx={{ p: 4, mb: 6, bgcolor: 'primary.light' }}>
         <Grid container spacing={3} alignItems="center">
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs:12, md:8 }}>
             <Typography variant="h5" gutterBottom>
               Start Your Safety Journey Today
             </Typography>
@@ -355,7 +355,7 @@ export default function SafetyPage() {
             </Typography>
           </Grid>
           
-          <Grid item xs={12} md={4} sx={{ textAlign: 'center' }}>
+          <Grid size={{ xs:12, md:4 }} sx={{ textAlign: 'center' }}>
             <Button 
               variant="contained" 
               size="large"

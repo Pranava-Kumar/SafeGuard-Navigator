@@ -11,10 +11,10 @@ class Settings(BaseSettings):
     
     # Database
     POSTGRES_SERVER: str = "localhost"
-    POSTGRES_USER: str = "safetrouterroute"
-    POSTGRES_PASSWORD: str = "safetrouterroute"
-    POSTGRES_DB: str = "safetrouterroute"
-    DATABASE_URL: Optional[str] = None
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_DB: str = "saferoute_db"
+    DATABASE_URL: Optional[str] = "postgresql://neondb_owner:npg_ManPy6Y2oFNe@ep-noisy-math-a1ls63lm-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
     
     # JWT
     SECRET_KEY: str = "safetrouterroute_secret_key_for_development_only"
@@ -36,14 +36,12 @@ class Settings(BaseSettings):
     # Override DATABASE_URL if not set or if it's invalid
     @property
     def database_url(self) -> str:
-        # Check if DATABASE_URL is set and valid
-        if self.DATABASE_URL and not self.DATABASE_URL.startswith("file:"):
-            return self.DATABASE_URL
-        # For development, use SQLite
-        return "sqlite:///./safetrouterroute.db"
+        # Always use the NeonDB URL
+        return self.DATABASE_URL
     
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 
 settings = Settings()

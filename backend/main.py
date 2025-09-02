@@ -26,6 +26,7 @@ async def startup_event():
         logger.info("SafeRoute backend starting up...")
         logger.info(f"Project: {settings.PROJECT_NAME}")
         logger.info(f"Version: {settings.PROJECT_VERSION}")
+        logger.info(f"Database URL: {settings.database_url}")
         logger.info("Database connected and tables created")
     except Exception as e:
         logger.error(f"Error during startup: {str(e)}")

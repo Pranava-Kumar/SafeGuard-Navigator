@@ -57,6 +57,44 @@ export interface EmergencyService {
   isActive: boolean;
 }
 
+// Additional interfaces for user data
+interface UserSelect {
+  id: boolean;
+  name: boolean;
+  email: boolean;
+  phone: boolean;
+  emergencyContacts?: boolean;
+  healthInfo?: boolean;
+}
+
+interface UserData {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  emergencyContacts?: EmergencyContact[];
+  healthInfo?: any; // This should be properly typed based on your health info model
+}
+
+interface AlertData {
+  alertId: string;
+  alertType: string;
+  timestamp: Date;
+  location?: {
+    latitude: number;
+    longitude: number;
+    time: Date;
+  };
+  user?: {
+    id: string;
+    name: string;
+    phone: string;
+    email: string;
+  };
+  healthInfo?: any; // This should be properly typed based on your health info model
+  customMessage?: string;
+}
+
 // Emergency Alert Service
 class EmergencyAlertService {
   /**
@@ -121,7 +159,6 @@ class EmergencyAlertService {
         userId,
         deviceId,
         action: 'trigger_emergency_alert',
-        resourceId: alert.id,
         details: {
           alertType,
           includeLocation,
@@ -170,9 +207,9 @@ class EmergencyAlertService {
       }
       
       // Get user data if needed
-      let user: any = null;
+      let user: UserData | null = null;
       if (options.includeUserProfile || options.includeHealthInfo) {
-        const userSelect: any = {
+        const userSelect: UserSelect = {
           id: true,
           name: true,
           email: true,
@@ -191,11 +228,11 @@ class EmergencyAlertService {
         user = await prisma.user.findUnique({
           where: { id: alert.userId },
           select: userSelect
-        });
+        }) as UserData | null;
       }
       
       // Prepare alert data
-      const alertData = {
+      const alertData: AlertData = {
         alertId: alert.id,
         alertType: alert.alertType,
         timestamp: alert.createdAt,
@@ -244,7 +281,7 @@ class EmergencyAlertService {
    */
   private async notifyEmergencyContacts(
     userId: string,
-    alertData: any
+    alertData: AlertData
   ): Promise<string[]> {
     try {
       // Get user's emergency contacts
@@ -283,7 +320,7 @@ class EmergencyAlertService {
   /**
    * Notify appropriate authorities
    */
-  private async notifyAuthorities(userId: string, alertData: any): Promise<boolean> {
+  private async notifyAuthorities(userId: string, alertData: AlertData): Promise<boolean> {
     try {
       // Get user's location
       if (!alertData.location) {
@@ -329,7 +366,7 @@ class EmergencyAlertService {
   /**
    * Send SMS alert to emergency contact
    */
-  private async sendSmsAlert(phone: string, alertData: any): Promise<boolean> {
+  private async sendSmsAlert(phone: string, alertData: AlertData): Promise<boolean> {
     try {
       // In a real implementation, this would use an SMS service like Twilio
       console.log(`Sending emergency SMS to ${phone}`);
@@ -349,7 +386,7 @@ class EmergencyAlertService {
   /**
    * Initiate emergency call to contact
    */
-  private async initiateEmergencyCall(phone: string, alertData: any): Promise<boolean> {
+  private async initiateEmergencyCall(phone: string, alertData: AlertData): Promise<boolean> {
     try {
       // In a real implementation, this would use a voice calling API
       // like Twilio or an automated calling system
@@ -370,7 +407,7 @@ class EmergencyAlertService {
   /**
    * Send email alert to emergency contact
    */
-  private async sendEmailAlert(email: string, alertData: any): Promise<boolean> {
+  private async sendEmailAlert(email: string, alertData: AlertData): Promise<boolean> {
     try {
       // In a real implementation, this would use an email service
       console.log(`Sending emergency email to ${email}`);
@@ -393,7 +430,7 @@ class EmergencyAlertService {
    * Format alert message for different communication channels
    */
   private formatAlertMessage(
-    alertData: any,
+    alertData: AlertData,
     isVoice: boolean = false,
     isEmail: boolean = false
   ): string {
@@ -403,45 +440,28 @@ class EmergencyAlertService {
     // Get alert type text
     const alertTypeText = this.getAlertTypeText(alertData.alertType);
     
-    // Format timestamp
-    const timeText = new Date(alertData.timestamp).toLocaleString();
+    // Format time
+    const timeString = alertData.timestamp.toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
     
-    // Base message
-    let message = `EMERGENCY ALERT: ${userName} has triggered a ${alertTypeText} alert at ${timeText}.`;
-    
-    // Add custom message if available
-    if (alertData.customMessage) {
-      message += ` Message: "${alertData.customMessage}"`;
-    }
-    
-    // Add location if available
+    // Format location if available
+    let locationString = '';
     if (alertData.location) {
-      const locationUrl = `https://maps.google.com/?q=${alertData.location.latitude},${alertData.location.longitude}`;
-      
-      if (isVoice) {
-        message += ` They are located at latitude ${alertData.location.latitude.toFixed(6)} and longitude ${alertData.location.longitude.toFixed(6)}.`;
-      } else if (isEmail) {
-        message += ` They are located at: ${locationUrl}`;
-      } else {
-        message += ` Location: ${locationUrl}`;
-      }
+      locationString = ` at coordinates ${alertData.location.latitude.toFixed(6)}, ${alertData.location.longitude.toFixed(6)}`;
     }
     
-    // Add health info if available
-    if (alertData.healthInfo) {
-      message += ` Health information: ${alertData.healthInfo.bloodType || ''} ${alertData.healthInfo.allergies || ''} ${alertData.healthInfo.medications || ''} ${alertData.healthInfo.conditions || ''}`;
-    }
-    
-    // Add contact instructions
+    // Format message based on channel
     if (isVoice) {
-      message += ` This is an automated emergency alert. Please respond immediately.`;
+      return `Emergency Alert for ${userName}. ${alertTypeText}${locationString}. Time: ${timeString}. This is an automated message from SafeRoute.`;
     } else if (isEmail) {
-      message += `\n\nThis is an automated emergency alert from SafeRoute. Please respond immediately.\n\nDO NOT REPLY TO THIS EMAIL - contact the user directly or emergency services.`;
+      return `Emergency Alert\n\nUser: ${userName}\nType: ${alertTypeText}\nTime: ${timeString}\nLocation: ${locationString || 'Not shared'}\n\nThis is an automated message from SafeRoute.`;
     } else {
-      message += ` Please respond immediately.`;
+      // SMS format
+      return `EMERGENCY: ${alertTypeText} for ${userName}${locationString}. Time: ${timeString}. Check app for details.`;
     }
-    
-    return message;
   }
 
   /**
@@ -598,6 +618,10 @@ class EmergencyAlertService {
       
       const priority = existingContacts === 0 ? 1 : 1;
       
+      // Generate verification code
+      const verificationCode = this.generateVerificationCode();
+      const verificationCodeExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+      
       // Create contact
       const contact = await prisma.emergencyContact.create({
         data: {
@@ -607,15 +631,18 @@ class EmergencyAlertService {
           email: contactData.email,
           relationship: contactData.relationship,
           priority: priority,
-          isActive: true
+          isActive: false, // Contacts are inactive until verified
+          verificationCode,
+          verificationCodeExpires
         }
       });
+      
+      // TODO: Send verification code to the contact via SMS/email
       
       // Log audit trail for DPDP Act 2023 compliance
       await this.logEmergencyActivity({
         userId,
         action: 'add_emergency_contact',
-        resourceId: contact.id,
         details: {
           name: contactData.name,
           relationship: contactData.relationship,
@@ -663,6 +690,15 @@ class EmergencyAlertService {
         throw new Error('Unauthorized access to contact');
       }
       
+      // If phone number is being updated, we need to re-verify the contact
+      let verificationCode: string | undefined;
+      let verificationCodeExpires: Date | undefined;
+      
+      if (updates.phone && updates.phone !== contact.phone) {
+        verificationCode = this.generateVerificationCode();
+        verificationCodeExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+      }
+      
       // Update contact
       const updatedContact = await prisma.emergencyContact.update({
         where: { id: contactId },
@@ -671,15 +707,21 @@ class EmergencyAlertService {
           phone: updates.phone,
           email: updates.email,
           relationship: updates.relationship,
-          priority: updates.isPrimary ? 1 : undefined
+          priority: updates.isPrimary ? 1 : undefined,
+          ...(verificationCode && verificationCodeExpires ? {
+            verificationCode,
+            verificationCodeExpires,
+            isActive: false // Reset verification status when phone is updated
+          } : {})
         }
       });
+      
+      // TODO: Send verification code to the contact via SMS/email if phone was updated
       
       // Log audit trail for DPDP Act 2023 compliance
       await this.logEmergencyActivity({
         userId,
         action: 'update_emergency_contact',
-        resourceId: contactId,
         details: {
           updates: Object.keys(updates)
         }
@@ -698,6 +740,63 @@ class EmergencyAlertService {
       };
     } catch (error) {
       console.error(`Error updating emergency contact ${contactId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify an emergency contact with verification code
+   */
+  async verifyEmergencyContact(contactId: string, code: string): Promise<boolean> {
+    try {
+      // Get existing contact
+      const contact = await prisma.emergencyContact.findUnique({
+        where: { id: contactId }
+      });
+      
+      if (!contact) {
+        throw new Error(`Contact ${contactId} not found`);
+      }
+      
+      // Check if verification code exists
+      if (!contact.verificationCode || !contact.verificationCodeExpires) {
+        throw new Error('No verification code found for this contact');
+      }
+      
+      // Check if verification code is expired
+      if (contact.verificationCodeExpires < new Date()) {
+        throw new Error('Verification code has expired');
+      }
+      
+      // Check if provided code matches
+      if (contact.verificationCode !== code) {
+        throw new Error('Invalid verification code');
+      }
+      
+      // Update contact to mark as verified (active) and clear verification code
+      await prisma.emergencyContact.update({
+        where: { id: contactId },
+        data: {
+          isActive: true,
+          verificationCode: null,
+          verificationCodeExpires: null
+        }
+      });
+      
+      // Log audit trail for DPDP Act 2023 compliance
+      await this.logEmergencyActivity({
+        userId: contact.userId,
+        action: 'verify_emergency_contact',
+        details: {
+          contactId,
+          name: contact.name,
+          relationship: contact.relationship
+        }
+      });
+      
+      return true;
+    } catch (error) {
+      console.error(`Error verifying emergency contact ${contactId}:`, error);
       throw error;
     }
   }
@@ -730,7 +829,6 @@ class EmergencyAlertService {
       await this.logEmergencyActivity({
         userId,
         action: 'delete_emergency_contact',
-        resourceId: contactId,
         details: {
           name: contact.name,
           relationship: contact.relationship
@@ -767,7 +865,7 @@ class EmergencyAlertService {
         email: contact.email || undefined,
         relationship: contact.relationship,
         notificationPreference: [],
-        isVerified: contact.isActive,
+        isVerified: contact.isActive, // Use isActive as the verification status
         isPrimary: contact.priority === 1
       }));
     } catch (error) {
@@ -901,6 +999,12 @@ class EmergencyAlertService {
     details?: any;
   }): Promise<void> {
     try {
+      // Only log if we have a userId, as it's required in the AuditLog model
+      if (!data.userId) {
+        console.warn('Skipping audit log entry - no userId provided');
+        return;
+      }
+      
       await prisma.auditLog.create({
         data: {
           userId: data.userId,
@@ -942,6 +1046,14 @@ class EmergencyAlertService {
   private deg2rad(degrees: number): number {
     return degrees * (Math.PI / 180);
   }
+
+  /**
+   * Generate a 6-digit verification code
+   */
+  private generateVerificationCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
 }
 
 export default EmergencyAlertService;

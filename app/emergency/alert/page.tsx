@@ -349,7 +349,7 @@ export default function EmergencyAlertPage() {
 
               {contacts.length === 0 ? (
                 <p className="text-muted-foreground">
-                  You don't have any emergency contacts yet. Add contacts to notify them in case of emergency.
+                  You don&apos;t have any emergency contacts yet. Add contacts to notify them in case of emergency.
                 </p>
               ) : (
                 <div className="space-y-2">

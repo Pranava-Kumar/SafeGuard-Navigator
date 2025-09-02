@@ -149,7 +149,7 @@ const DEFAULT_PLAN: EmergencyPlan = {
   },
   evacuationRoutes: [],
   documents: [
-    'Identification (passports, birth certificates, driver's licenses)',
+    "Identification (passports, birth certificates, driver's licenses)",
     'Insurance policies',
     'Medical records and prescriptions',
     'Bank account information',
@@ -255,7 +255,7 @@ export default function FamilyEmergencyPlanPage() {
   
   // Save item from dialog
   const saveItem = () => {
-    let updatedPlan = { ...plan };
+    const updatedPlan = { ...plan };
     
     switch (editingItemType) {
       case 'contact':
@@ -307,7 +307,7 @@ export default function FamilyEmergencyPlanPage() {
   const deleteItem = (type: string, id: string) => {
     if (!confirm('Are you sure you want to delete this item?')) return;
     
-    let updatedPlan = { ...plan };
+    const updatedPlan = { ...plan };
     
     switch (type) {
       case 'contact':

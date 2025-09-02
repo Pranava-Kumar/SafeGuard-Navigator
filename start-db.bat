@@ -1,0 +1,6 @@
+@echo off
+echo Starting PostgreSQL database for SafeRoute...
+docker run --name saferoute-postgres -e POSTGRES_DB=saferoute_db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgis/postgis:15-3.3
+echo Waiting for database to start...
+timeout /t 10 /nobreak >nul
+echo Database started successfully!

@@ -39,7 +39,7 @@ export default function EmergencyHubPage() {
       if (!response.ok) throw new Error('Failed to fetch alerts');
 
       const data = await response.json();
-      const activeCount = data.alerts?.filter((alert: any) => alert.status === 'active').length || 0;
+      const activeCount = data.alerts?.filter((alert: { status: string }) => alert.status === 'active').length || 0;
       setActiveAlerts(activeCount);
     } catch (err) {
       console.error('Error fetching alerts:', err);

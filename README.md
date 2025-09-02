@@ -1,47 +1,55 @@
 # SafeRoute: AI-Driven Public Safety Navigation System
 
-![SafeRoute Logo](public/favicon.ico)
+![SafeRoute Banner](https://placehold.co/800x200/4F46E5/FFFFFF?text=SafeRoute:+AI-Driven+Public+Safety+Navigation)
 
 SafeRoute is an AI-driven public safety navigation system designed for the **Infosys PALS TechZooka Hackathon 2025**. This project focuses on building intelligent navigation for pedestrians and two-wheeler riders in Indian cities, prioritizing safety over speed.
 
-## 🚨 Problem Statement
-
-India faces a severe road safety crisis with 4,61,312 road accidents resulting in 1,68,491 deaths in 2022. Vulnerable road users (pedestrians and two-wheelers) account for 65% of fatalities. Night-time risks are particularly acute, with 43% of pedestrian deaths and 38% of two-wheeler deaths occurring after dark in Delhi alone.
-
-## 🛡️ Solution
-
-SafeRoute addresses this crisis by providing:
-- **Multi-factor SafetyScore™** algorithm combining lighting quality, footfall activity, hazard reports, and proximity to help
-- **Trust-weighted crowdsourcing** with Wilson score reputation system
-- **Real-time safety intelligence** from VIIRS satellite data and municipal dark-spot inventories
-- **112 emergency service integration** with sub-3-second activation
-- **DPDP Act 2023 compliance** with explicit consent flows and user rights
-
 ## 🏆 Hackathon Achievement
 
-Winner - **Infosys PALS TechZooka Hackathon 2025**
+**Winner - Infosys PALS TechZooka Hackathon 2025**
 
-## 🧠 Key Features
+Our team, **SafeGuard Navigators**, developed an innovative solution that addresses India's severe road safety crisis by creating an intelligent navigation platform that prioritizes personal safety over speed for vulnerable road users.
 
-### Safety-First Routing
-- Multi-factor algorithm prioritizing personal safety over travel time
-- Real-time safety scoring with environmental intelligence
-- Dynamic route optimization based on time-of-day and weather conditions
+## 🎯 Problem Statement
 
-### Emergency Response
-- Sub-3-second 112 emergency service activation
-- Automated location sharing with precise coordinates
-- Emergency contact notification system
+India faces a severe and escalating road safety crisis, with statistics painting a grim picture of the daily risks faced by citizens. The problem is particularly acute for pedestrians and two-wheeler riders, who are disproportionately affected.
 
-### Community Intelligence
-- Trust-weighted crowdsourcing for real-time hazard reporting
-- Wilson score-based reputation system for data reliability
-- Civic feedback loop for infrastructure improvement
+### Key Statistics:
+- **4,61,312 Road Accidents** (2022) resulting in **1,68,491 deaths**
+- **65% of fatalities** are vulnerable road users (45% two-wheelers, 20% pedestrians)
+- **43% of pedestrian deaths** and **38% of two-wheeler deaths** in Delhi occur at night
+- **4,289 "dark spots"** officially identified in Delhi, creating a perception and reality of unsafe routes
 
-### Privacy & Compliance
-- Full DPDP Act 2023 compliance
-- Explicit consent management
-- Data minimization and user rights protection
+## 💡 Solution Overview
+
+SafeRoute addresses this critical gap by designing an intelligent navigation platform that prioritizes user safety through:
+
+1. **Real-time lighting assessment** using VIIRS satellite data
+2. **Crowdsourced hazard reporting** with trust-weighted reputation system
+3. **Integration with civic infrastructure** for dark-spot identification
+4. **Multi-factor SafetyScore algorithm** combining lighting quality, footfall activity, hazard reports, and proximity to help
+5. **DPDP Act 2023 compliance** with explicit consent flows and user rights mechanisms
+
+## 👥 Team Members
+
+### Pranava Kumar - Team Lead & Full-Stack Developer
+- Overall project architecture
+- AI/ML implementation
+- Geospatial systems
+
+### Muhilan M - UI/UX Designer & Frontend Developer
+- User interface design
+- Frontend development
+- User experience optimization
+
+### Sam Daniel J - Backend Developer & Data Engineer
+- Backend systems
+- Data pipelines
+- Infrastructure management
+
+### Mrs. Chinchu Nair - Mentor
+- Assistant Professor, Department of CSE
+- Technical guidance and mentorship
 
 ## 🛠️ Technology Stack
 
@@ -50,176 +58,174 @@ Winner - **Infosys PALS TechZooka Hackathon 2025**
 - **React 19+** with Server Components
 - **TypeScript 5+**
 - **Tailwind CSS v4+**
-- **Shadcn UI** and **Magic UI**
-- **Mappls SDK** for Indian geospatial data
+- **Shadcn UI** & **Magic UI**
 - **Framer Motion** for animations
+- **Leaflet** for maps
+- **Lucide React** for icons
 
-### Backend & AI/ML
-- **FastAPI (Python)** for ML services
-- **NestJS (TypeScript)** for microservices
+### Backend
+- **FastAPI** (Python) for ML services
+- **NestJS** (TypeScript) for microservices
 - **PostgreSQL + PostGIS** for geospatial data
-- **XGBoost/LightGBM** for gradient boosting models
-- **PyTorch** for deep learning
+- **Redis** for caching
 - **Kafka/RabbitMQ** for event streaming
+- **OSRM** for route optimization
+
+### AI/ML
+- **XGBoost/LightGBM** for safety prediction
+- **PyTorch** for deep learning models
+- **Wilson Score** for reputation system
 
 ### Data Sources
-- **VIIRS Black Marble** satellite data for lighting assessment
-- **OpenStreetMap** + **Mappls SDK** for base mapping
-- **Municipal dark-spot inventories** for civic data
-- **Crowdsourced reports** for community intelligence
+- **VIIRS Black Marble** satellite data (NASA)
+- **OpenStreetMap** + **Mappls SDK**
+- **Municipal dark-spot inventories**
+- **India Meteorological Department**
+- **Crowdsourced safety reports**
 
-### Infrastructure
-- **Docker** for containerization
-- **Kubernetes** for orchestration
-- **Prometheus + Grafana** for monitoring
-- **ELK Stack** for logging
+## 🚀 Key Features
 
-## 📊 Measurable Impact Targets
+### Multi-Factor SafetyScore Algorithm
+SafeRoute's proprietary Safety Score algorithm evaluates road safety by combining four key factors:
+- **Lighting Quality** (30% weight)
+- **Footfall & Activity** (25% weight)
+- **Hazard Index** (20% weight)
+- **Proximity to Help** (25% weight)
+
+### Trust-Weighted Crowdsourcing
+Community-driven safety intelligence with a Wilson score-based reputation system that effectively filters noisy/malicious reports while building a trustworthy safety network.
+
+### Emergency Response Integration
+Sub-3-second emergency activation with 112 India integration, location sharing, and emergency contact notification.
+
+### Route Optimization
+Safety-first routing that balances travel time with safety, offering multiple route options (safest, fastest, balanced).
+
+### Real-time Safety Updates
+Dynamic safety scoring with temporal decay that adapts to changing conditions in real time.
+
+## 🔐 Privacy & Compliance
+
+### DPDP Act 2023 Compliance
+- Explicit consent flows for all data processing activities
+- Data minimization principles with coarse geo-hashing
+- On-device processing for sensitive analyses
+- India data residency requirements
+- User rights mechanisms (access, correction, deletion)
+
+### Security Features
+- JWT with refresh tokens for authentication
+- bcrypt hashing for password security
+- Rate limiting and brute force protection
+- Input validation and output sanitization
+
+## 📊 Measurable Impact
 
 - **25% reduction** in low-lit/isolated segment exposure
 - **+30% improvement** in self-reported safety perception
 - **Sub-3-second** 112/SOS activation with location context
-- **90% crowdsourced** report verification rate
+- **90% report verification rate** through trust-weighted crowdsourcing
 
-## 🏗️ Architecture
+## 🗺️ Architecture Overview
 
-SafeRoute follows a microservices architecture with:
-
-1. **ingest-svc** - Data ingestion from multiple sources
-2. **score-svc** - Multi-factor SafetyScore calculation
-3. **route-svc** - Safety-aware route optimization
-4. **reputation-svc** - Trust-weighted crowdsourcing
-5. **prediction-svc** - AI/ML incident forecasting
-6. **API Gateway** - Authentication and request routing
-
-## 🔐 Security & Compliance
-
-- **DPDP Act 2023** compliant with explicit consent flows
-- **JWT with refresh tokens** for authentication
-- **AES-256 encryption** at rest
-- **TLS 1.3** for data in transit
-- **Data minimization** with coarse geo-hashing
-- **India data residency** requirements
+```mermaid
+graph TB
+    Client[Mobile/Web App] --> Gateway[API Gateway]
+    Gateway --> Auth[Authentication Service]
+    Gateway --> Ingest[ingest-svc]
+    Gateway --> Score[score-svc]
+    Gateway --> Route[route-svc]
+    Gateway --> Reputation[reputation-svc]
+    Gateway --> Prediction[prediction-svc]
+    
+    Ingest --> OSM[OpenStreetMap]
+    Ingest --> VIIRS[VIIRS Satellite Data]
+    Ingest --> Municipal[Municipal Dark-spots]
+    Ingest --> Crowd[Crowdsourced Reports]
+    
+    Score --> ML[XGBoost Models]
+    Route --> OSRM[OSRM Routing Engine]
+    Reputation --> Wilson[Wilson Score Algorithm]
+    
+    Gateway --> PostGIS[(PostgreSQL + PostGIS)]
+    Gateway --> Neo4j[(Neo4j + GraphDS)]
+    Gateway --> Kafka[Kafka/RabbitMQ]
+    
+    style Client fill:#e1f5fe
+    style PostGIS fill:#f3e5f5
+    style ML fill:#fff3e0
+    style OSRM fill:#e8f5e8
+```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Node.js 18+
-- npm, yarn, pnpm, or bun
+- Python 3.8+
 - PostgreSQL with PostGIS extension
-- Redis (for caching and sessions)
+- Redis
+- Kafka or RabbitMQ
 
 ### Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/safeguardnavigators/saferoute.git
-cd saferoute
+git clone https://github.com/your-org/safeguard-navigators.git
+cd safeguardnavigators
 ```
 
-2. Install dependencies:
+2. Install frontend dependencies:
 ```bash
 npm install
-# or
-yarn install
-# or
-pnpm install
-# or
-bun install
 ```
 
-3. Set up environment variables:
+3. Install backend dependencies:
 ```bash
-cp .env.example .env.local
-# Edit .env.local with your configuration
+cd backend
+pip install -r requirements.txt
 ```
 
-4. Run database migrations:
+4. Set up environment variables:
 ```bash
-npx prisma migrate dev
+cp .env.example .env
+# Edit .env with your configuration
 ```
 
 5. Start the development server:
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-6. Open [http://localhost:3000](http://localhost:3000) in your browser.
+### Available Scripts
 
-### Backend Services
+- `npm run dev` - Start development server
+- `npm run build` - Create production build
+- `npm run start` - Start production server
+- `npm run lint` - Run linter
+- `npm run test` - Run tests
 
-To start the backend services:
+## 📚 Documentation
 
-```bash
-# Start FastAPI services (ML/AI)
-cd backend/fastapi
-uvicorn main:app --reload
-
-# Start NestJS services (microservices)
-cd backend/nestjs
-npm run start:dev
-```
-
-## 🧪 Testing
-
-Run the test suite:
-
-```bash
-npm run test
-# or
-yarn test
-# or
-pnpm test
-# or
-bun test
-```
-
-## 📦 Deployment
-
-### Vercel (Frontend)
-The frontend can be deployed to Vercel with one click:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/safeguardnavigators/saferoute)
-
-### Docker (Backend)
-Build and run backend services with Docker:
-
-```bash
-# Build images
-docker-compose build
-
-# Start services
-docker-compose up -d
-```
+- [API Documentation](./docs/api.md)
+- [Architecture Guide](./docs/architecture.md)
+- [Deployment Guide](./docs/deployment.md)
+- [Contributing Guide](./CONTRIBUTING.md)
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+We welcome contributions from the community! Please read our [Contributing Guide](./CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👥 Team
-
-**SafeGuard Navigators**
-- **Team Lead:** Pranava Kumar (pranavakumar.it@gmail.com)
-- **Team Members:** Sam Daniel J, Muhilan M
-- **Mentor:** Mrs. Chinchu Nair (Assistant Professor, Department of CSE)
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- Thanks to Infosys for organizing the PALS TechZooka Hackathon 2025
-- Inspiration from Safetipin's manual safety audits and Delhi's Dark-Spot Program
-- NASA's VIIRS Black Marble satellite data
-- Mappls for Indian address precision and geospatial data
+- **Infosys PALS TechZooka Hackathon 2025** for the opportunity to build this solution
+- **NASA** for the VIIRS Black Marble satellite data
+- **OpenStreetMap** for the open mapping data
+- **Mappls** for the Indian address precision SDK
+- **India Meteorological Department** for weather data APIs
 
 ---
-
-Made with ❤️ for safer urban mobility in India 🇮🇳
+Built with ❤️ by the **SafeGuard Navigators** team for the Infosys PALS TechZooka Hackathon 2025

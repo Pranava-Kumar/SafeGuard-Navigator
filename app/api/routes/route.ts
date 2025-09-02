@@ -62,8 +62,8 @@ function generateRouteCoordinates(start: RoutePoint, end: RoutePoint, waypoints:
 function calculateRouteSafetyScore(coordinates: RoutePoint[]): Promise<number> {
   return new Promise(async (resolve) => {
     try {
-      // Get safety scores for points along the route
-      const safetyScores = await db.safetyScore.findMany({
+      // Get safety events for points along the route
+      const safetyEvents = await db.safetyEvent.findMany({
         where: {
           OR: coordinates.map(coord => ({
             latitude: {
@@ -77,20 +77,39 @@ function calculateRouteSafetyScore(coordinates: RoutePoint[]): Promise<number> {
           }))
         },
         orderBy: {
-          lastUpdated: "desc"
+          startTime: "desc"
         }
       });
       
-      if (safetyScores.length === 0) {
+      if (safetyEvents.length === 0) {
         // If no real data, use mock calculation
         const mockScore = Math.floor(Math.random() * 40) + 40; // 40-80 range
         resolve(mockScore);
         return;
       }
       
-      // Calculate weighted average of safety scores
-      const totalScore = safetyScores.reduce((sum: number, score: any) => sum + score.overallScore, 0);
-      const averageScore = totalScore / safetyScores.length;
+      // Calculate weighted average of safety scores based on severity
+      // Lower severity values mean safer conditions
+      const totalScore = safetyEvents.reduce((sum: number, event: any) => {
+        // Convert severity to safety score (assuming severity is a string like "LOW", "MEDIUM", "HIGH")
+        let score = 70; // Default score
+        switch (event.severity) {
+          case "LOW":
+            score = 85;
+            break;
+          case "MEDIUM":
+            score = 70;
+            break;
+          case "HIGH":
+            score = 50;
+            break;
+          case "CRITICAL":
+            score = 30;
+            break;
+        }
+        return sum + score;
+      }, 0);
+      const averageScore = totalScore / safetyEvents.length;
       
       resolve(Math.round(averageScore));
     } catch (error) {

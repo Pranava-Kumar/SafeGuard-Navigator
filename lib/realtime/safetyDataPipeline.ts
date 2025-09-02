@@ -22,9 +22,9 @@ export interface SafetyDataSource {
   updateFrequency: number; // in seconds
   lastUpdated: Date;
   isActive: boolean;
-  apiEndpoint?: string;
-  apiKey?: string;
-  dataFormat?: string;
+  apiEndpoint?: string | null;
+  apiKey?: string | null;
+  dataFormat?: string | null;
 }
 
 export interface SafetyDataEvent {
@@ -33,11 +33,10 @@ export interface SafetyDataEvent {
   eventType: string;
   severity: 'info' | 'warning' | 'alert' | 'emergency';
   location: LocationData;
-  radius?: number; // affected radius in meters
-  startTime: Date;
-  endTime?: Date;
+  timestamp: Date;
+  title: string;
   description: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   isVerified: boolean;
 }
 
@@ -62,7 +61,7 @@ export interface SafetyNotification {
   severity: 'info' | 'warning' | 'alert' | 'emergency';
   timestamp: Date;
   isRead: boolean;
-  actionUrl?: string;
+  actionUrl?: string | null;
 }
 
 // Safety Data Pipeline Service
@@ -91,14 +90,14 @@ class SafetyDataPipeline {
         this.dataSources.set(source.id, {
           sourceId: source.id,
           name: source.name,
-          type: source.type as any,
+          type: source.type as SafetyDataSource['type'], // Properly typed instead of 'any'
           reliability: source.reliability,
           updateFrequency: source.updateFrequency,
           lastUpdated: source.lastUpdated,
           isActive: source.isActive,
-          apiEndpoint: source.apiEndpoint,
-          apiKey: source.apiKey,
-          dataFormat: source.dataFormat
+          apiEndpoint: source.apiEndpoint ?? undefined,
+          apiKey: source.apiKey ?? undefined,
+          dataFormat: source.dataFormat ?? undefined
         });
         
         // Start data collection for this source
@@ -386,11 +385,12 @@ class SafetyDataPipeline {
             longitude: sub.longitude,
             time: new Date()
           } : undefined,
-          radius: sub.radius,
+          radius: sub.radius ?? undefined,
           eventTypes: sub.eventTypes,
-          minSeverity: sub.minSeverity as any,
-          notificationChannels: sub.notificationChannels as any,
+          minSeverity: sub.minSeverity as 'info' | 'warning' | 'alert' | 'emergency',
+          notificationChannels: sub.notificationChannels as ('push' | 'email' | 'sms')[],
           isActive: sub.isActive
+
         }));
     } catch (error) {
       console.error(`Error finding matching subscriptions for event ${event.eventId}:`, error);
@@ -423,15 +423,26 @@ class SafetyDataPipeline {
       
       // Send notification through each channel
       for (const channel of subscription.notificationChannels) {
-        await this.sendNotificationViaChannel(notification, channel, subscription.userId);
+        await this.sendNotificationViaChannel({
+          notificationId: notification.id,
+          userId: notification.userId,
+          deviceId: notification.deviceId,
+          eventId: notification.eventId,
+          title: notification.title,
+          message: notification.message,
+          severity: notification.severity as 'info' | 'warning' | 'alert' | 'emergency',
+          timestamp: notification.timestamp,
+          isRead: notification.isRead,
+          actionUrl: notification.actionUrl
+        }, channel, subscription.userId);
       }
       
-      // Log notification for DPDP Act 2023 compliance
+      // Log notification activity for DPDP Act 2023 compliance
       await this.logNotificationActivity({
         userId: subscription.userId,
         deviceId: subscription.deviceId,
         action: 'send_safety_notification',
-        resourceId: notification.notificationId,
+        resourceId: notification.id,
         details: {
           eventId: event.eventId,
           eventType: event.eventType,
@@ -673,17 +684,18 @@ class SafetyDataPipeline {
     details?: any;
   }): Promise<void> {
     try {
+      // Only log if we have a userId, as it's required in the AuditLog model
+      if (!data.userId) {
+        console.warn('Skipping audit log entry - no userId provided');
+        return;
+      }
+      
       await prisma.auditLog.create({
         data: {
           userId: data.userId,
-          deviceId: data.deviceId,
-          ipAddress: data.ipAddress,
-          userAgent: data.userAgent,
           action: data.action,
-          resourceType: 'safety_notification',
-          resourceId: data.resourceId,
-          details: data.details,
-          timestamp: new Date()
+          resource: 'safety_notification',
+          metadata: data.details ? JSON.stringify(data.details) : null,
         }
       });
     } catch (error) {
@@ -1002,7 +1014,7 @@ class SafetyDataPipeline {
           longitude: newSubscription.longitude,
           time: new Date()
         } : undefined,
-        radius: newSubscription.radius,
+        radius: newSubscription.radius ?? undefined,
         eventTypes: newSubscription.eventTypes,
         minSeverity: newSubscription.minSeverity as any,
         notificationChannels: newSubscription.notificationChannels as any,
@@ -1071,7 +1083,7 @@ class SafetyDataPipeline {
           longitude: updatedSubscription.longitude,
           time: new Date()
         } : undefined,
-        radius: updatedSubscription.radius,
+        radius: updatedSubscription.radius ?? undefined,
         eventTypes: updatedSubscription.eventTypes,
         minSeverity: updatedSubscription.minSeverity as any,
         notificationChannels: updatedSubscription.notificationChannels as any,
