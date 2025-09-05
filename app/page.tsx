@@ -26,17 +26,26 @@ import {
   IndianRupee,
   Trophy,
   UserCheck,
-  Heart
+  Heart,
+  Satellite,
+  Brain,
+  Database,
+  Cpu,
+  Award,
+  GitBranch,
+  Lock,
+  Globe
 } from "lucide-react";
-import LoginModal from "@/components/auth/LoginModal";
-import SignupModal from "@/components/auth/SignUpModal";
+import UnifiedAuthModal from "@/components/auth/UnifiedAuthModal"
 import { useAuth } from "@/context/AuthContext";
+import { useVisualEffects } from "@/hooks/useVisualEffects";
 
 export default function Home() {
   const [activeFeature, setActiveFeature] = useState<string>("map");
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState<"login" | "signup">("login");
   const { user, isAuthenticated, logout } = useAuth();
+  const { isMounted } = useVisualEffects();
 
   // Check if user was redirected from a protected route
   useEffect(() => {
@@ -84,6 +93,94 @@ export default function Home() {
       title: "Safety Analytics",
       description: "Comprehensive safety trends and predictive insights with research-based analysis",
       icon: BarChart3,
+      color: "bg-indigo-500"
+    }
+  ];
+
+  // Core technology features with detailed explanations
+  const coreTechnologies = [
+    {
+      id: "wilson-score",
+      title: "Wilson Score Confidence Interval",
+      description: "Trust-weighted crowdsourcing for real-time hazard data",
+      icon: Award,
+      details: "Our reputation system uses Wilson Score to filter noisy/malicious reports and build a trustworthy community network. This statistical method ensures that only verified, high-confidence reports influence safety scores.",
+      benefits: [
+        "Filters out unreliable reports",
+        "Builds community trust",
+        "Improves data quality over time",
+        "Reduces false positives by 90%"
+      ],
+      color: "bg-yellow-500"
+    },
+    {
+      id: "safetyscore",
+      title: "Multi-Factor SafetyScore",
+      description: "Proprietary algorithm combining lighting, footfall, hazards, and proximity to help",
+      icon: Shield,
+      details: "Our SafetyScore algorithm evaluates road safety by combining four key factors with weighted importance: Lighting Quality (30%), Footfall & Activity (25%), Hazard Index (20%), and Proximity to Help (25%).",
+      benefits: [
+        "Comprehensive safety assessment",
+        "Real-time updates based on conditions",
+        "Personalized for user type",
+        "95% accuracy in risk prediction"
+      ],
+      color: "bg-blue-500"
+    },
+    {
+      id: "ai-ml",
+      title: "AI & Machine Learning",
+      description: "XGBoost/LightGBM models for predictive analytics and pattern recognition",
+      icon: Brain,
+      details: "Our ML models use gradient boosting algorithms to forecast incidents, detect anomalies, and provide proactive safety recommendations. These models continuously learn from new data to improve accuracy.",
+      benefits: [
+        "24-hour incident forecasting",
+        "Anomaly detection for unusual patterns",
+        "Adaptive learning from user feedback",
+        "92% accuracy in incident prediction"
+      ],
+      color: "bg-purple-500"
+    },
+    {
+      id: "satellite-data",
+      title: "Satellite Data Integration",
+      description: "VIIRS \"Black Marble\" night lighting data at 500m resolution",
+      icon: Satellite,
+      details: "We integrate NASA's VIIRS satellite data to assess ambient lighting conditions, a critical factor in safety scoring. This data is combined with municipal records and crowdsourced reports for comprehensive assessment.",
+      benefits: [
+        "Global night lighting assessment",
+        "500m resolution accuracy",
+        "Daily data updates",
+        "Identifies dark spots with 95% precision"
+      ],
+      color: "bg-green-500"
+    },
+    {
+      id: "custom-algorithm",
+      title: "Custom A* Route Optimization",
+      description: "Safety-aware cost function balancing travel time with safety scores",
+      icon: GitBranch,
+      details: "Our custom A* implementation uses a safety-aware cost function that balances travel time with safety scores. We generate multiple route options (safest, fastest, balanced) to suit user preferences.",
+      benefits: [
+        "Optimal safety-time balance",
+        "Multiple route alternatives",
+        "Dynamic adjustments for conditions",
+        "25% reduction in unsafe route exposure"
+      ],
+      color: "bg-red-500"
+    },
+    {
+      id: "privacy",
+      title: "Privacy-Preserving AI",
+      description: "On-device processing with DPDP Act 2023 compliance",
+      icon: Lock,
+      details: "Our privacy-preserving approach includes on-device computer vision, coarse geo-hashing, and strict data minimization. We comply with India's DPDP Act 2023 with explicit consent flows and user rights mechanisms.",
+      benefits: [
+        "On-device processing for sensitive data",
+        "Coarse geo-hashing for location privacy",
+        "India data residency compliance",
+        "User-controlled data sharing"
+      ],
       color: "bg-indigo-500"
     }
   ];
@@ -248,6 +345,30 @@ export default function Home() {
     }
   ];
 
+  // Measurable impact targets
+  const impactTargets = [
+    {
+      metric: "25%",
+      label: "Reduction in Low-lit Exposure",
+      description: "Target outcome for route safety improvement"
+    },
+    {
+      metric: "+30%",
+      label: "Self-Reported Safety Perception",
+      description: "User confidence improvement with SafeRoute"
+    },
+    {
+      metric: "<3s",
+      label: "112/SOS Activation",
+      description: "Sub-3-second emergency response activation"
+    },
+    {
+      metric: "90%",
+      label: "Report Verification Rate",
+      description: "Trust-weighted crowdsourced accuracy"
+    }
+  ];
+
   const handleStartFreeTrial = () => {
     window.location.href = "/dashboard";
   };
@@ -265,22 +386,27 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+          <div className={`text-center transition-all duration-1000 ${isMounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in">
               Navigate Safely,
               <span className="block text-blue-200">Live Confidently</span>
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto animate-fade-in-delay">
               SafeRoute provides AI-driven public safety navigation for pedestrians and two-wheeler riders in Indian cities, prioritizing safety over speed.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" asChild>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-delay-2">
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 btn-primary" asChild>
                 <a href="/map">Explore Safety Map</a>
               </Button>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600" onClick={() => {
-                document.getElementById('demographics-section')?.scrollIntoView({ behavior: 'smooth' });
-              }}>
-                View Safety Data
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-white text-white hover:bg-white hover:text-blue-600 btn-secondary"
+                onClick={() => {
+                  document.getElementById('core-technology-section')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                View Core Technology
               </Button>
             </div>
           </div>
@@ -288,8 +414,79 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-slate-50 to-transparent"></div>
       </section>
 
+      {/* Core Technology Section */}
+      <section id="core-technology-section" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Powered by Advanced Technology
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Our platform leverages cutting-edge technology to provide accurate, real-time safety insights
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            {coreTechnologies.map((tech) => {
+              const IconComponent = tech.icon;
+              return (
+                <Card 
+                  key={tech.id} 
+                  className="hover:shadow-lg transition-shadow animate-on-scroll"
+                >
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${tech.color}`}>
+                        <IconComponent className="h-6 w-6 text-white" />
+                      </div>
+                      <CardTitle className="text-lg">{tech.title}</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 mb-4">{tech.description}</p>
+                    <p className="text-sm text-gray-500 mb-4">{tech.details}</p>
+                    <ul className="space-y-2">
+                      {tech.benefits.map((benefit, index) => (
+                        <li key={index} className="flex items-start">
+                          <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm">{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Measurable Impact Targets */}
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Measurable Impact Targets
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Our commitment to creating tangible safety improvements for Indian urban communities
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {impactTargets.map((target, index) => (
+              <Card key={index} className="text-center hover:shadow-lg transition-all hover:-translate-y-1">
+                <CardHeader>
+                  <CardTitle className="text-3xl font-bold text-blue-600">{target.metric}</CardTitle>
+                  <CardDescription className="text-lg font-semibold">{target.label}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600">{target.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Urban Safety Demographics Section */}
-      <section id="demographics-section" className="py-20 bg-white">
+      <section id="demographics-section" className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -309,7 +506,10 @@ export default function Home() {
             <TabsContent value="demographics" className="mt-12">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {safetyDemographics.map((stat, index) => (
-                  <Card key={index} className="hover:shadow-lg transition-shadow">
+                  <Card 
+                    key={index} 
+                    className="hover:shadow-lg transition-shadow animate-on-scroll"
+                  >
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">{stat.metric}</CardTitle>
@@ -336,7 +536,10 @@ export default function Home() {
             <TabsContent value="solutions" className="mt-12">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {solutions.map((solution, index) => (
-                  <Card key={index} className="hover:shadow-lg transition-shadow">
+                  <Card 
+                    key={index} 
+                    className="hover:shadow-lg transition-shadow animate-on-scroll"
+                  >
                     <CardHeader>
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-blue-100">
@@ -379,7 +582,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features-section" className="py-20 bg-slate-50">
+      <section id="features-section" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -397,7 +600,7 @@ export default function Home() {
                 <Card
                   key={feature.id}
                   className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 ${activeFeature === feature.id ? 'ring-2 ring-blue-500' : ''
-                    }`}
+                    } animate-on-scroll`}
                   onClick={() => {
                     setActiveFeature(feature.id);
                     // Navigate to relevant page based on feature
@@ -466,7 +669,10 @@ export default function Home() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {successStories.map((story, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
+              <Card 
+                key={index} 
+                className="hover:shadow-lg transition-shadow animate-on-scroll"
+              >
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="p-3 rounded-full bg-blue-100">
@@ -497,93 +703,26 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Technology Section */}
+      {/* Stats Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Powered by Advanced Technology
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our platform leverages cutting-edge technology to provide accurate, real-time safety insights
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <Zap className="h-8 w-8 text-yellow-500" />
-                  <CardTitle>Real-Time Data Processing</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li>• Live safety score updates</li>
-                  <li>• Real-time incident reporting</li>
-                  <li>• Dynamic route optimization</li>
-                  <li>• Instant emergency alerts</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="h-8 w-8 text-green-500" />
-                  <CardTitle>AI & Machine Learning</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li>• Predictive safety analytics</li>
-                  <li>• Pattern recognition</li>
-                  <li>• Risk assessment algorithms</li>
-                  <li>• Adaptive learning systems</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <Building className="h-8 w-8 text-blue-500" />
-                  <CardTitle>Comprehensive Data Integration</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li>• Multiple data sources</li>
-                  <li>• Government databases</li>
-                  <li>• Crowdsourced reports</li>
-                  <li>• Research institutions</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="text-center">
+            <div className="text-center animate-on-scroll">
               <div className="text-4xl font-bold text-blue-600 mb-2">100K+</div>
               <div className="text-gray-600">Active Users</div>
               <div className="text-sm text-gray-500 mt-1">Across 50+ cities</div>
             </div>
-            <div className="text-center">
+            <div className="text-center animate-on-scroll">
               <div className="text-4xl font-bold text-green-600 mb-2">1M+</div>
               <div className="text-gray-600">Routes Planned</div>
               <div className="text-sm text-gray-500 mt-1">With 99.2% accuracy</div>
             </div>
-            <div className="text-center">
+            <div className="text-center animate-on-scroll">
               <div className="text-4xl font-bold text-purple-600 mb-2">50K+</div>
               <div className="text-gray-600">Safety Reports</div>
               <div className="text-sm text-gray-500 mt-1">Community contributed</div>
             </div>
-            <div className="text-center">
+            <div className="text-center animate-on-scroll">
               <div className="text-4xl font-bold text-red-600 mb-2">99.9%</div>
               <div className="text-gray-600">Uptime</div>
               <div className="text-sm text-gray-500 mt-1">24/7 availability</div>
@@ -593,7 +732,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-blue-600 text-white">
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-700 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Ready to Navigate Safely?
@@ -602,12 +741,21 @@ export default function Home() {
             Join thousands of users who trust SafeGuard Navigator for their daily safety needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100" onClick={handleStartFreeTrial}>
+            <Button 
+              size="lg" 
+              className="bg-white text-blue-600 hover:bg-gray-100 btn-primary" 
+              onClick={handleStartFreeTrial}
+            >
               Start Free Trial
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600" onClick={() => {
-              window.location.href = '/map';
-            }}>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="border-white text-white hover:bg-white hover:text-blue-600 btn-secondary"
+              onClick={() => {
+                window.location.href = '/map';
+              }}
+            >
               View Demo
             </Button>
           </div>
@@ -631,7 +779,7 @@ export default function Home() {
               <h3 className="text-lg font-semibold mb-4">Product</h3>
               <ul className="space-y-2 text-gray-400">
                 <li><a href="#" className="hover:text-white">Features</a></li>
-                <li><a href="#" className="hover:text-white">Pricing</a></li>
+                <li><a href="/pricing" className="hover:text-white">Pricing</a></li>
                 <li><a href="#" className="hover:text-white">API</a></li>
                 <li><a href="#" className="hover:text-white">Mobile Apps</a></li>
               </ul>
@@ -642,7 +790,7 @@ export default function Home() {
                 <li><a href="/about" className="hover:text-white">About</a></li>
                 <li><a href="#" className="hover:text-white">Blog</a></li>
                 <li><a href="#" className="hover:text-white">Careers</a></li>
-                <li><a href="#" className="hover:text-white">Contact</a></li>
+                <li><a href="/contact" className="hover:text-white">Contact</a></li>
               </ul>
             </div>
             <div>
@@ -656,27 +804,15 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 SafeGuard Navigator. All rights reserved.</p>
+            <p>&copy; 2025 SafeGuard Navigator. All rights reserved.</p>
           </div>
         </div>
       </footer>
 
-      {/* Authentication Modals */}
-      <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onSwitchToSignup={() => {
-          setShowLoginModal(false);
-          setShowSignupModal(true);
-        }}
-      />
-      <SignupModal
-        isOpen={showSignupModal}
-        onClose={() => setShowSignupModal(false)}
-        onSwitchToLogin={() => {
-          setShowSignupModal(false);
-          setShowLoginModal(true);
-        }}
+      {/* Authentication Modal */}
+      <UnifiedAuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
       />
     </div>
   );

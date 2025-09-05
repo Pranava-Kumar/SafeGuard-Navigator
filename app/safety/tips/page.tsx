@@ -1,70 +1,86 @@
-/**
- * Safety Tips Page
- * Provides safety guidelines and emergency preparedness information
- * Compliant with DPDP Act 2023
- */
+"use client";
 
-'use client';
-
-import React, { useState } from 'react';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { 
-  Box, 
-  Typography, 
-  Container, 
-  Paper, 
   Accordion, 
-  AccordionSummary, 
-  AccordionDetails,
-  Divider,
-  Chip,
-  Grid,
-  Card,
-  CardContent,
-  CardMedia,
-  Button,
-  TextField,
-  InputAdornment,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Tab,
-  Tabs
-} from '@mui/material';
-import { 
-  ExpandMore, 
-  Search, 
-  Warning, 
-  LocalHospital, 
-  LocalFireDepartment,
-  LocalPolice,
-  Flood,
-  Bolt,
-  Coronavirus,
-  DirectionsCar,
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from "@/components/ui/accordion";
+import {
+  Search,
+  AlertTriangle,
+  Hospital,
+  Flame,
+  Shield,
+  Waves,
+  Zap,
+  Car,
   Home,
-  Public,
   School,
-  Work,
-  NaturePeople,
+  Briefcase,
+  TreePine,
   Bookmark,
-  BookmarkBorder
-} from '@mui/icons-material';
+  BookmarkCheck,
+  Filter,
+  X,
+  ChevronDown,
+  Phone,
+  BadgeCheck,
+  ShieldCheck,
+  Heart,
+  Users,
+  MapPin,
+  Lightbulb,
+  Plus,
+  Minus,
+  Check,
+  Circle,
+  Square,
+  Star,
+  Clock,
+  User,
+  Hash,
+  Tag,
+  Calendar,
+  FileText,
+  Info,
+  HelpCircle,
+  ExternalLink,
+  Copy,
+  Share2,
+  Printer,
+  Download,
+  Settings,
+  Eye,
+  EyeOff,
+  Edit,
+  Trash2,
+  Save,
+  RotateCcw,
+  RefreshCw,
+  Loader2,
+  AlertCircle
+} from "lucide-react";
 
 // Safety tip categories
 const CATEGORIES = [
-  { id: 'emergency', label: 'Emergency Response', icon: <Warning color="error" /> },
-  { id: 'medical', label: 'Medical Emergencies', icon: <LocalHospital color="error" /> },
-  { id: 'fire', label: 'Fire Safety', icon: <LocalFireDepartment color="error" /> },
-  { id: 'police', label: 'Crime & Security', icon: <LocalPolice color="primary" /> },
-  { id: 'natural', label: 'Natural Disasters', icon: <Flood color="primary" /> },
-  { id: 'home', label: 'Home Safety', icon: <Home color="primary" /> },
-  { id: 'travel', label: 'Travel Safety', icon: <DirectionsCar color="primary" /> },
-  { id: 'public', label: 'Public Places', icon: <Public color="primary" /> },
-  { id: 'school', label: 'School Safety', icon: <School color="primary" /> },
-  { id: 'workplace', label: 'Workplace Safety', icon: <Work color="primary" /> },
-  { id: 'outdoor', label: 'Outdoor Safety', icon: <NaturePeople color="primary" /> },
-  { id: 'pandemic', label: 'Pandemic Safety', icon: <Coronavirus color="primary" /> },
+  { id: 'all', label: 'All Categories', icon: <Shield className="h-4 w-4" /> },
+  { id: 'emergency', label: 'Emergency Response', icon: <AlertTriangle className="h-4 w-4" /> },
+  { id: 'medical', label: 'Medical Emergencies', icon: <Hospital className="h-4 w-4" /> },
+  { id: 'fire', label: 'Fire Safety', icon: <Flame className="h-4 w-4" /> },
+  { id: 'police', label: 'Crime & Security', icon: <ShieldCheck className="h-4 w-4" /> },
+  { id: 'natural', label: 'Natural Disasters', icon: <Waves className="h-4 w-4" /> },
+  { id: 'home', label: 'Home Safety', icon: <Home className="h-4 w-4" /> },
+  { id: 'travel', label: 'Travel Safety', icon: <Car className="h-4 w-4" /> },
+  { id: 'public', label: 'Public Places', icon: <Users className="h-4 w-4" /> },
+  { id: 'school', label: 'School Safety', icon: <School className="h-4 w-4" /> },
+  { id: 'workplace', label: 'Workplace Safety', icon: <Briefcase className="h-4 w-4" /> },
+  { id: 'outdoor', label: 'Outdoor Safety', icon: <TreePine className="h-4 w-4" /> },
+  { id: 'pandemic', label: 'Pandemic Safety', icon: <Zap className="h-4 w-4" /> },
 ];
 
 // Sample safety tips data
@@ -214,7 +230,7 @@ const SAFETY_TIPS = [
     content: [
       'Never use electrical appliances near water',
       'Inspect cords regularly for damage and replace if frayed',
-      'Don\'t overload outlets or extension cords',
+      'Do not overload outlets or extension cords',
       'Unplug appliances when not in use',
       'Install ground fault circuit interrupters (GFCIs) in bathrooms and kitchens',
       'Keep electrical panels accessible and labeled',
@@ -228,7 +244,7 @@ const SAFETY_TIPS = [
     title: 'School emergency procedures',
     category: 'school',
     content: [
-      'Know the school\'s emergency response plan',
+      'Know the schools emergency response plan',
       'Familiarize yourself with evacuation routes and assembly areas',
       'Follow teacher and staff instructions during emergencies',
       'Report suspicious activities or persons to school authorities',
@@ -256,7 +272,6 @@ const SAFETY_TIPS = [
   },
 ];
 
-// Interface for safety tip
 interface SafetyTip {
   id: number;
   title: string;
@@ -270,7 +285,25 @@ export default function SafetyTipsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [savedTips, setSavedTips] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState(0);
-  
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  // Load saved tips from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('savedSafetyTips');
+    if (saved) {
+      try {
+        setSavedTips(JSON.parse(saved));
+      } catch (e) {
+        console.error('Error parsing saved tips', e);
+      }
+    }
+  }, []);
+
+  // Save tips to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('savedSafetyTips', JSON.stringify(savedTips));
+  }, [savedTips]);
+
   // Filter tips based on search query and selected category
   const filteredTips = SAFETY_TIPS.filter((tip) => {
     const matchesSearch = 
@@ -297,7 +330,7 @@ export default function SafetyTipsPage() {
   };
   
   // Handle tab change
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (newValue: number) => {
     setActiveTab(newValue);
     
     // Reset category when switching tabs
@@ -308,307 +341,356 @@ export default function SafetyTipsPage() {
     }
   };
   
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('all');
+    setActiveTab(0);
+  };
+
+  // Get category icon
+  const getCategoryIcon = (categoryId: string) => {
+    const category = CATEGORIES.find(c => c.id === categoryId);
+    return category ? category.icon : <Shield className="h-4 w-4" />;
+  };
+
+  // Get category color
+  const getCategoryColor = (categoryId: string) => {
+    const colors: Record<string, string> = {
+      emergency: 'text-red-600 bg-red-100',
+      medical: 'text-red-600 bg-red-100',
+      fire: 'text-red-600 bg-red-100',
+      police: 'text-blue-600 bg-blue-100',
+      natural: 'text-green-600 bg-green-100',
+      home: 'text-purple-600 bg-purple-100',
+      travel: 'text-indigo-600 bg-indigo-100',
+      public: 'text-yellow-600 bg-yellow-100',
+      school: 'text-pink-600 bg-pink-100',
+      workplace: 'text-teal-600 bg-teal-100',
+      outdoor: 'text-green-600 bg-green-100',
+      pandemic: 'text-orange-600 bg-orange-100',
+    };
+    return colors[categoryId] || 'text-gray-600 bg-gray-100';
+  };
+
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Safety Tips & Guidelines
-        </Typography>
-        
-        <Typography variant="body1" gutterBottom>
-          Learn how to stay safe in various emergency situations and everyday life.
-        </Typography>
-      </Box>
-      
-      {/* Emergency Reminder */}
-      <Paper 
-        sx={{ 
-          p: 3, 
-          mb: 4, 
-          bgcolor: 'error.light', 
-          color: 'error.contrastText',
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Warning sx={{ mr: 2, fontSize: 40 }} />
-          <Box>
-            <Typography variant="h5" gutterBottom>
-              Emergency Helpline: <strong>112</strong>
-            </Typography>
-            <Typography variant="body1">
-              In case of immediate danger or emergency, call the national emergency number.
-            </Typography>
-          </Box>
-        </Box>
-      </Paper>
-      
-      {/* Tabs */}
-      <Box sx={{ mb: 4 }}>
-        <Tabs 
-          value={activeTab} 
-          onChange={handleTabChange}
-          variant="fullWidth"
-          sx={{ mb: 2 }}
-        >
-          <Tab label="All Safety Tips" />
-          <Tab 
-            label={`Saved Tips (${savedTips.length})`} 
-            disabled={savedTips.length === 0}
-          />
-        </Tabs>
-      </Box>
-      
-      {/* Search and Filter */}
-      <Box sx={{ mb: 4, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
-        <TextField
-          fullWidth
-          placeholder="Search safety tips..."
-          variant="outlined"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search />
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Box>
-      
-      {/* Categories */}
-      <Box sx={{ mb: 4, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-        <Chip 
-          label="All Categories" 
-          onClick={() => setSelectedCategory('all')}
-          color={selectedCategory === 'all' ? 'primary' : 'default'}
-          variant={selectedCategory === 'all' ? 'filled' : 'outlined'}
-          sx={{ mb: 1 }}
-        />
-        
-        {activeTab === 0 && CATEGORIES.map((category) => (
-          <Chip 
-            key={category.id}
-            label={category.label}
-            icon={category.icon}
-            onClick={() => setSelectedCategory(category.id)}
-            color={selectedCategory === category.id ? 'primary' : 'default'}
-            variant={selectedCategory === category.id ? 'filled' : 'outlined'}
-            sx={{ mb: 1 }}
-          />
-        ))}
-        
-        {activeTab === 1 && (
-          <Chip 
-            label="Saved Tips" 
-            icon={<Bookmark />}
-            color="primary"
-            variant="filled"
-            sx={{ mb: 1 }}
-          />
-        )}
-      </Box>
-      
-      {/* Results count */}
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="body2" color="text.secondary">
-          Showing {filteredTips.length} of {SAFETY_TIPS.length} safety tips
-        </Typography>
-      </Box>
-      
-      {/* Safety Tips */}
-      {filteredTips.length > 0 ? (
-        <Box>
-          {filteredTips.map((tip) => {
-            const category = CATEGORIES.find(c => c.id === tip.category);
-            const isSaved = savedTips.includes(tip.id);
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-8">
+            <h1 className="text-3xl font-bold text-gray-900">Safety Tips & Guidelines</h1>
+            <p className="mt-2 text-gray-600">
+              Learn how to stay safe in various emergency situations and everyday life.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Emergency Reminder */}
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex items-center gap-4">
+              <AlertTriangle className="h-10 w-10 text-red-600 flex-shrink-0" />
+              <div>
+                <h2 className="text-xl font-semibold text-red-800 mb-1">
+                  Emergency Helpline: <strong>112</strong>
+                </h2>
+                <p className="text-red-700">
+                  In case of immediate danger or emergency, call the national emergency number.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0 md:ml-auto">
+              <Button asChild variant="destructive">
+                <a href="tel:112">
+                  <Phone className="h-4 w-4 mr-2" />
+                  Call 112
+                </a>
+              </Button>
+              <Button asChild variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
+                <a href="sms:112">
+                  <Phone className="h-4 w-4 mr-2" />
+                  Text 112
+                </a>
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => handleTabChange(0)}
+                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 0
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                All Safety Tips
+              </button>
+              <button
+                onClick={() => handleTabChange(1)}
+                className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
+                  activeTab === 1
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+                disabled={savedTips.length === 0}
+              >
+                <Bookmark className="h-4 w-4 mr-2" />
+                Saved Tips ({savedTips.length})
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="mb-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search safety tips..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-2 w-full"
+              />
+            </div>
             
-            return (
-              <Accordion key={tip.id} sx={{ mb: 2 }}>
-                <AccordionSummary expandIcon={<ExpandMore />}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                    <Box sx={{ mr: 2 }}>
-                      {category?.icon}
-                    </Box>
-                    
-                    <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                      {tip.title}
-                    </Typography>
-                    
-                    <Button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleSaved(tip.id);
-                      }}
-                      sx={{ minWidth: 'auto', p: 1 }}
-                    >
-                      {isSaved ? <Bookmark color="primary" /> : <BookmarkBorder />}
-                    </Button>
-                  </Box>
-                </AccordionSummary>
-                
-                <AccordionDetails>
-                  <List>
-                    {tip.content.map((item, index) => (
-                      <ListItem key={index}>
-                        <ListItemIcon sx={{ minWidth: 36 }}>
-                          <Box 
-                            sx={{ 
-                              width: 24, 
-                              height: 24, 
-                              borderRadius: '50%', 
-                              bgcolor: 'primary.main', 
-                              color: 'white',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: 14,
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                className="lg:hidden"
+                onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                Filters
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={clearFilters}
+                className={searchQuery || selectedCategory !== 'all' ? 'visible' : 'invisible'}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Clear
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Filters */}
+        {mobileFiltersOpen && (
+          <div className="lg:hidden mb-6 p-4 bg-white rounded-lg shadow">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-medium text-gray-900">Filter by Category</h3>
+              <Button variant="ghost" size="sm" onClick={() => setMobileFiltersOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map((category) => (
+                <Button
+                  key={category.id}
+                  variant={selectedCategory === category.id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(category.id)}
+                  className="flex items-center"
+                >
+                  {category.icon}
+                  <span className="ml-1">{category.label}</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Desktop Filters */}
+        <div className="hidden lg:block mb-6">
+          <div className="flex flex-wrap gap-2">
+            {CATEGORIES.map((category) => (
+              <Button
+                key={category.id}
+                variant={selectedCategory === category.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(category.id)}
+                className="flex items-center"
+              >
+                {category.icon}
+                <span className="ml-1">{category.label}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Results count */}
+        <div className="mb-4">
+          <p className="text-sm text-gray-600">
+            Showing {filteredTips.length} of {SAFETY_TIPS.length} safety tips
+          </p>
+        </div>
+
+        {/* Safety Tips */}
+        {filteredTips.length > 0 ? (
+          <div className="space-y-4">
+            {filteredTips.map((tip) => {
+              const category = CATEGORIES.find(c => c.id === tip.category);
+              const isSaved = savedTips.includes(tip.id);
+              
+              return (
+                <Card key={tip.id} className="hover:shadow-md transition-shadow">
+                  <Accordion type="single" collapsible>
+                    <AccordionItem value={`tip-${tip.id}`} className="border-0">
+                      <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                        <div className="flex items-center w-full">
+                          <div className={`p-2 rounded-full ${getCategoryColor(tip.category)}`}>
+                            {getCategoryIcon(tip.category)}
+                          </div>
+                          
+                          <h3 className="text-lg font-medium text-gray-900 ml-3 flex-1 text-left">
+                            {tip.title}
+                          </h3>
+                          
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleSaved(tip.id);
                             }}
+                            className="ml-2"
                           >
-                            {index + 1}
-                          </Box>
-                        </ListItemIcon>
-                        <ListItemText primary={item} />
-                      </ListItem>
-                    ))}
-                  </List>
-                  
-                  <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {tip.tags.map((tag) => (
-                      <Chip 
-                        key={tag} 
-                        label={tag} 
-                        size="small" 
-                        variant="outlined"
-                        onClick={() => setSearchQuery(tag)}
-                      />
-                    ))}
-                  </Box>
-                </AccordionDetails>
-              </Accordion>
-            );
-          })}
-        </Box>
-      ) : (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="h6" gutterBottom>
-            No safety tips found
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Try adjusting your search or category filter
-          </Typography>
-          <Button 
-            variant="contained" 
-            sx={{ mt: 2 }}
-            onClick={() => {
-              setSearchQuery('');
-              setSelectedCategory('all');
-            }}
-          >
-            Clear Filters
-          </Button>
-        </Paper>
-      )}
-      
-      {/* Emergency Resources */}
-      <Box sx={{ mt: 6, mb: 4 }}>
-        <Typography variant="h5" gutterBottom>
-          Emergency Resources
-        </Typography>
-        
-        <Divider sx={{ mb: 3 }} />
-        
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <Card>
-              <CardMedia
-                component="img"
-                height="140"
-                image="/images/emergency-kit.jpg"
-                alt="Emergency Kit"
-                sx={{ bgcolor: 'grey.300' }} // Placeholder if image not available
-              />
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Emergency Kit Checklist
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
+                            {isSaved ? (
+                              <BookmarkCheck className="h-5 w-5 text-blue-600" />
+                            ) : (
+                              <Bookmark className="h-5 w-5 text-gray-400" />
+                            )}
+                          </Button>
+                        </div>
+                      </AccordionTrigger>
+                      
+                      <AccordionContent className="px-6 pb-4">
+                        <div className="space-y-3">
+                          {tip.content.map((item, index) => (
+                            <div key={index} className="flex items-start">
+                              <div className="flex-shrink-0 mt-1 w-6 h-6 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center text-xs font-medium">
+                                {index + 1}
+                              </div>
+                              <p className="ml-3 text-gray-700">{item}</p>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {tip.tags.map((tag) => (
+                            <button
+                              key={tag}
+                              onClick={() => setSearchQuery(tag)}
+                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200"
+                            >
+                              {tag}
+                            </button>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <Card className="p-8 text-center">
+            <div className="mx-auto w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+              <Shield className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">No safety tips found</h3>
+            <p className="text-gray-500 mb-4">
+              Try adjusting your search or category filter
+            </p>
+            <Button onClick={clearFilters}>
+              Clear Filters
+            </Button>
+          </Card>
+        )}
+
+        {/* Emergency Resources */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Emergency Resources</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-3">
+                  <Heart className="h-6 w-6 text-red-600" />
+                </div>
+                <CardTitle>Emergency Kit Checklist</CardTitle>
+                <CardDescription>
                   Essential items to include in your emergency preparedness kit.
-                </Typography>
-                <Button 
-                  variant="outlined" 
-                  sx={{ mt: 2 }}
-                  href="/safety/resources/emergency-kit"
-                >
-                  View Checklist
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild variant="outline" className="w-full">
+                  <a href="/safety/resources/emergency-kit">
+                    View Checklist
+                  </a>
                 </Button>
               </CardContent>
             </Card>
-          </Grid>
-          
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <Card>
-              <CardMedia
-                component="img"
-                height="140"
-                image="/images/emergency-plan.jpg"
-                alt="Emergency Plan"
-                sx={{ bgcolor: 'grey.300' }} // Placeholder if image not available
-              />
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Family Emergency Plan
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
+            
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-3">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+                <CardTitle>Family Emergency Plan</CardTitle>
+                <CardDescription>
                   Create a comprehensive emergency plan for your family.
-                </Typography>
-                <Button 
-                  variant="outlined" 
-                  sx={{ mt: 2 }}
-                  href="/safety/resources/family-plan"
-                >
-                  Create Plan
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-          
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <Card>
-              <CardMedia
-                component="img"
-                height="140"
-                image="/images/first-aid.jpg"
-                alt="First Aid"
-                sx={{ bgcolor: 'grey.300' }} // Placeholder if image not available
-              />
+                </CardDescription>
+              </CardHeader>
               <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  First Aid Basics
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Learn essential first aid skills for common emergencies.
-                </Typography>
-                <Button 
-                  variant="outlined" 
-                  sx={{ mt: 2 }}
-                  href="/safety/resources/first-aid"
-                >
-                  Learn First Aid
+                <Button asChild variant="outline" className="w-full">
+                  <a href="/safety/resources/family-plan">
+                    Create Plan
+                  </a>
                 </Button>
               </CardContent>
             </Card>
-          </Grid>
-        </Grid>
-      </Box>
-      
-      <Box sx={{ mt: 6, mb: 2 }}>
-        <Divider />
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
-          These safety tips are provided for informational purposes only and should not replace professional advice or training.
-          In case of emergency, always call the national emergency number: <strong>112</strong>.
-        </Typography>
-      </Box>
-    </Container>
+            
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-3">
+                  <BadgeCheck className="h-6 w-6 text-green-600" />
+                </div>
+                <CardTitle>First Aid Basics</CardTitle>
+                <CardDescription>
+                  Learn essential first aid skills for common emergencies.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild variant="outline" className="w-full">
+                  <a href="/safety/resources/first-aid">
+                    Learn First Aid
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Disclaimer */}
+        <div className="mt-12 pt-6 border-t border-gray-200">
+          <p className="text-center text-sm text-gray-500">
+            These safety tips are provided for informational purposes only and should not replace professional advice or training.
+            In case of emergency, always call the national emergency number: <strong className="text-red-600">112</strong>.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

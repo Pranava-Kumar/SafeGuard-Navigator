@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
@@ -26,7 +26,7 @@ class Language(str, Enum):
 
 # Shared properties
 class UserBase(BaseModel):
-    email: EmailStr
+    email: str
     first_name: str
     last_name: str
     phone: Optional[str] = None
@@ -51,7 +51,7 @@ class UserCreate(UserBase):
 
 # Properties for login
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 

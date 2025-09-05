@@ -77,10 +77,10 @@ export class SafetyAwareRouteOptimizer {
   }
 
   /**
-   * Initialize graph from OpenStreetMap data
+   * Initialize the graph with OSM data
    * @param osmData OpenStreetMap data
    */
-  async initializeFromOSM(osmData: OSMData): Promise<void> {
+  async initializeFromOSM(osmData: any): Promise<void> {
     // This would convert OSM data to our graph representation
     // Implementation details would depend on the OSM data structure
     console.log('Initializing graph from OSM data');

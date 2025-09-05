@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "saferoute_db"
     DATABASE_URL: Optional[str] = "postgresql://neondb_owner:npg_ManPy6Y2oFNe@ep-noisy-math-a1ls63lm-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    DIRECT_URL: Optional[str] = "postgresql://neondb_owner:npg_ManPy6Y2oFNe@ep-noisy-math-a1ls63lm-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
     
     # JWT
     SECRET_KEY: str = "safetrouterroute_secret_key_for_development_only"
@@ -25,8 +26,9 @@ class Settings(BaseSettings):
     PASSWORD_MIN_LENGTH: int = 8
     
     # OSRM
-    OSRM_HOST: str = "localhost"
+    OSRM_HOST: str = "http://localhost:5000"
     OSRM_PORT: int = 5000
+    USE_LOCAL_OSRM: bool = True
     
     # API Keys for data sources
     NASA_API_KEY: Optional[str] = None
@@ -36,7 +38,7 @@ class Settings(BaseSettings):
     # Override DATABASE_URL if not set or if it's invalid
     @property
     def database_url(self) -> str:
-        # Always use the NeonDB URL
+        # Use the DATABASE_URL from environment or default to NeonDB
         return self.DATABASE_URL
     
     class Config:

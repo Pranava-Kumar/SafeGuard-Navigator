@@ -84,7 +84,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to get emergency alert' },
-      { status: error instanceof Error && 'status' in error ? (error as any).status : 500 }
+      { status: error instanceof Error && 'status' in error ? (error as Error & { status: number }).status : 500 }
     );
   }
 }
@@ -151,7 +151,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to resolve emergency alert' },
-      { status: error instanceof Error && 'status' in error ? (error as any).status : 500 }
+      { status: error instanceof Error && 'status' in error ? (error as Error & { status: number }).status : 500 }
     );
   }
 }

@@ -469,14 +469,7 @@ class AuthService {
   async updateConsent(data: ConsentUpdateData): Promise<AuthResult> {
     try {
       // Update user consent based on type
-      const updateData: Partial<{
-        dataProcessingConsent: boolean;
-        locationSharingLevel: string;
-        crowdsourcingParticipation: boolean;
-        personalizedRecommendations: boolean;
-        analyticsConsent: boolean;
-        marketingConsent: boolean;
-      }> = {};
+      const updateData: any = {};
       switch (data.consentType) {
         case 'data_processing':
           updateData.dataProcessingConsent = data.granted;

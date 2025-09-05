@@ -78,22 +78,15 @@ interface VIIRSDataPoint {
   confidence: number;
 }
 
-interface WeatherAlert {
-  type: string;
-  description: string;
-  severity: string;
-  startTime: Date;
-  endTime: Date;
-}
-
 interface WeatherData {
   temperature: number;
   humidity: number;
   visibility: number;
+  weatherCondition: string;
   windSpeed: number;
   pressure: number;
   description: string;
-  alerts: WeatherAlert[]; // Would be populated from alerts API
+  alerts: any[]; // Would be populated from alerts API
   source: string;
   timestamp: Date;
 }

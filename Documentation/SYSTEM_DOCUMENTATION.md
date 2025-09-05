@@ -488,39 +488,31 @@ POST /api/v1/reputation/update-reputation
 GET /api/v1/reputation/reputation/{user_id}
 ```
 
-## Deployment
+## Deployment Architecture
 
-### Development
-```bash
-# Frontend
-npm run dev
+### Containerization
+- **Docker**: Containerized service deployment
+- **Multi-stage Builds**: Optimized production images
+- **Environment Configuration**: Docker Compose for local development
+- **Health Checks**: Container readiness and liveness probes
 
-# Backend
-uvicorn app.main:app --reload
-```
-
-### Production
-```bash
-# Frontend
-npm run build
-npm run start
-
-# Backend
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
-
-### Environment Configuration
-- **DATABASE_URL**: PostgreSQL connection string
-- **SECRET_KEY**: JWT secret for token signing
-- **NASA_API_KEY**: NASA API key for VIIRS data
-- **OPENWEATHER_API_KEY**: Weather API key
-- **BACKEND_URL**: URL for backend services
-
-### Scaling Considerations
-- **Horizontal Scaling**: Stateless services for load balancing
-- **Database Sharding**: Geographic sharding for global expansion
-- **Caching Layers**: Redis for frequently accessed data
+### Cloud Deployment
+- **Platform**: AWS/Azure/GCP deployment options
+- **Load Balancing**: Traffic distribution
+- **Auto-scaling**: Demand-based scaling
 - **CDN**: Static asset delivery
+
+### Database Deployment
+- **Managed Services**: RDS/Cloud SQL for production or NeonDB for serverless
+- **Backups**: Automated backup strategies
+- **Replication**: Read replicas for scaling
+- **Maintenance Windows**: Scheduled maintenance
+
+### Local Development Setup
+- **Manual Environment Setup**: Developers must manually create and activate virtual environments
+- **No Auto-installation**: Scripts no longer automatically install packages or dependencies
+- **Service Isolation**: Each service runs in its own window for easier monitoring
+- **Graceful Shutdown**: Services can be stopped independently without affecting others
 
 ## Testing
 

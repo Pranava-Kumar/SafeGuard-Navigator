@@ -271,7 +271,7 @@ export const CoordinatesSchema = z.object({
 /**
  * Standard API response wrapper
  */
-export interface APIResponse<T> {
+export interface APIResponse<T = any> {
   success: boolean;
   data?: T;
   message?: string;

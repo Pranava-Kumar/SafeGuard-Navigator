@@ -1,10 +1,106 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Users, MapPin, Zap, Building, Lightbulb, Navigation } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import {
+  Users,
+  MapPin,
+  Shield,
+  BarChart3,
+  Lightbulb,
+  Award,
+  Target,
+  Zap,
+  Globe,
+  Star,
+  TrendingUp,
+  Calendar,
+  Clock,
+  Phone,
+  Mail,
+  Github,
+  Linkedin,
+  Twitter,
+  Facebook,
+  Youtube,
+  Instagram,
+  AwardIcon,
+  BookOpen,
+  Heart,
+  CheckCircle,
+  AlertCircle,
+  ExternalLink,
+  ChevronRight,
+  Building,
+  GraduationCap,
+  Briefcase,
+  UserCheck,
+  Trophy,
+  Rocket,
+  Layers,
+  Grid,
+  Database,
+  Cpu,
+  Code,
+  Smartphone,
+  Cloud,
+  Lock,
+  Key,
+  Eye,
+  EyeOff,
+  ThumbsUp,
+  Share2,
+  Flag,
+  Info,
+  Settings,
+  HelpCircle,
+  Printer,
+  Search,
+  Plus,
+  Minus,
+  Check,
+  Circle,
+  Square,
+  Hash,
+  Tag,
+  FileText,
+  Home,
+  Car,
+  Waves,
+  Umbrella,
+  Battery,
+  Wifi,
+  Radio,
+  HeartPulse,
+  Navigation,
+  RotateCcw,
+  RefreshCw,
+  Loader2,
+  AlertTriangle,
+  PhoneCall,
+  MessageCircle,
+  Send,
+  User,
+  Bell,
+  Contact,
+  Volume2,
+  VolumeX,
+  Mic,
+  MicOff,
+  Camera,
+  Video,
+  Image,
+  Paperclip,
+  Smile,
+  Frown,
+  Meh,
+  HeartCrack,
+  HeartHandshake
+} from "lucide-react";
 
 export default function AboutPage() {
   const impact = [
@@ -54,33 +150,6 @@ export default function AboutPage() {
       role: "Mentor",
       description: "Assistant Professor, Department of CSE guiding the team's technical approach and providing academic mentorship.",
       expertise: ["Computer Science", "Software Engineering", "Education"]
-    }
-  ];
-
-  const milestones = [
-    {
-      title: "Project Inception",
-      year: "2025",
-      description: "Team formation and ideation for the Infosys PALS TechZooka Hackathon",
-      icon: Lightbulb
-    },
-    {
-      title: "Solution Design",
-      year: "2025",
-      description: "Architecture planning and technology stack selection for SafeRoute platform",
-      icon: Building
-    },
-    {
-      title: "Prototype Development",
-      year: "2025",
-      description: "Implementation of core features including SafetyScore algorithm and routing engine",
-      icon: Zap
-    },
-    {
-      title: "Hackathon Submission",
-      year: "2025",
-      description: "Final submission for the Infosys PALS TechZooka Hackathon 2025",
-      icon: Users
     }
   ];
 
@@ -304,17 +373,17 @@ export default function AboutPage() {
               <div className="p-8">
                 <div className="flex flex-col md:flex-row items-center gap-8">
                   <div className="w-32 h-32 bg-gradient-to-br from-white to-gray-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-4xl flex-shrink-0 border-4 border-white shadow-lg">
-                    {teamMembers[3].name.split(' ').map(n => n[0]).join('')}
+                    {teamMembers[3] ? teamMembers[3].name.split(' ').map(n => n[0]).join('') : 'MN'}
                   </div>
                   <div className="flex-1 text-center md:text-left">
                     <Badge variant="secondary" className="mb-4 bg-yellow-400 text-indigo-900 text-sm font-bold px-4 py-2 rounded-full">
                       MENTOR
                     </Badge>
-                    <h3 className="text-3xl font-bold mb-2">{teamMembers[3].name}</h3>
-                    <p className="text-xl mb-4 text-indigo-100">{teamMembers[3].role}</p>
-                    <p className="text-lg mb-6">{teamMembers[3].description}</p>
+                    <h3 className="text-3xl font-bold mb-2">{teamMembers[3] ? teamMembers[3].name : "Mrs. Chinchu Nair"}</h3>
+                    <p className="text-xl mb-4 text-indigo-100">{teamMembers[3] ? teamMembers[3].role : "Mentor"}</p>
+                    <p className="text-lg mb-6">{teamMembers[3] ? teamMembers[3].description : "Assistant Professor, Department of CSE guiding the team's technical approach and providing academic mentorship."}</p>
                     <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                      {teamMembers[3].expertise && teamMembers[3].expertise.map((skill, skillIndex) => (
+                      {teamMembers[3] && teamMembers[3].expertise && teamMembers[3].expertise.map((skill, skillIndex) => (
                         <Badge key={skillIndex} variant="secondary" className="bg-white text-indigo-700">
                           {skill}
                         </Badge>

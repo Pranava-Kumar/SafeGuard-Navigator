@@ -10,7 +10,10 @@ import {
   AlertTriangle,
   Users,
   Menu,
-  X
+  X,
+  Home,
+  TrendingUp,
+  MessageCircle
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -19,12 +22,13 @@ export default function NavigationBar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { name: "Home", href: "/", icon: Shield },
+    { name: "Home", href: "/", icon: Home },
     { name: "Map", href: "/map", icon: MapPin },
     { name: "Routes", href: "/routes", icon: Navigation },
     { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
-    { name: "Analytics", href: "/analytics", icon: BarChart3 },
+    { name: "Analytics", href: "/analytics", icon: TrendingUp },
     { name: "Emergency", href: "/emergency", icon: AlertTriangle },
+    { name: "Safety", href: "/safety", icon: Shield },
     { name: "Community", href: "/community", icon: Users },
   ];
 

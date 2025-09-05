@@ -1,12 +1,12 @@
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
-from app.models.user import UserRole
+from app.models.models import UserRole
 
 # Shared properties
 class UserBase(BaseModel):
-    email: EmailStr
+    email: str
     firstName: Optional[str] = None
     lastName: Optional[str] = None
     is_active: Optional[bool] = True

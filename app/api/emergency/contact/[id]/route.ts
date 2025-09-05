@@ -84,7 +84,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to update emergency contact' },
-      { status: error instanceof Error && 'status' in error ? (error as any).status : 500 }
+      { status: error instanceof Error && 'status' in error ? (error as Error & { status: number }).status : 500 }
     );
   }
 }
@@ -186,12 +186,12 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
     
     return NextResponse.json({ success: true, verified });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error verifying emergency contact:', error);
     
     return NextResponse.json(
-      { error: error.message || 'Failed to verify emergency contact' },
-      { status: error.status || 500 }
+      { error: error instanceof Error ? error.message : 'Failed to verify emergency contact' },
+      { status: 500 }
     );
   }
 }

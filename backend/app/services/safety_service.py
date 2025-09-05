@@ -2,8 +2,9 @@
 from sqlalchemy.orm import Session
 from app import crud, schemas
 from app.services import viirs_service, mappls_service, municipal_service, weather_service
+from datetime import datetime
 
-def calculate_safety_score(db: Session, lat: float, lon: float) -> schemas.SafetyScore:
+def calculate_safety_score(db: Session, lat: float, lon: float):
     """
     Calculates the safety score for a given location.
     """
@@ -39,12 +40,36 @@ def calculate_safety_score(db: Session, lat: float, lon: float) -> schemas.Safet
         lighting_score + footfall_score + hazards_score + proximity_to_help_score
     ) / 4
 
-    return schemas.SafetyScore(
-        score=int(overall_score),
-        factors=schemas.SafetyFactors(
-            lighting=int(lighting_score),
-            footfall=footfall_score,
-            hazards=hazards_score,
-            proximity_to_help=proximity_to_help_score,
+    # Create the factors object
+    factors = schemas.SafetyFactors(
+        lighting=schemas.SafetyFactor(
+            score=int(lighting_score),
+            description="Lighting conditions based on VIIRS satellite data"
         ),
+        footfall=schemas.SafetyFactor(
+            score=int(footfall_score),
+            description="Footfall activity based on nearby places of interest"
+        ),
+        hazards=schemas.SafetyFactor(
+            score=int(hazards_score),
+            description="Hazards based on weather conditions and user reports"
+        ),
+        proximity=schemas.SafetyFactor(
+            score=int(proximity_to_help_score),
+            description="Proximity to help services"
+        )
+    )
+
+    # Return a SafetyScoreResponse object instead of SafetyScore
+    return schemas.SafetyScoreResponse(
+        overall_score=int(overall_score),
+        factors=factors,
+        weights={
+            "lighting": 1.0,
+            "footfall": 1.0,
+            "hazards": 1.0,
+            "proximity": 1.0
+        },
+        confidence=0.75,
+        timestamp=datetime.utcnow()
     )

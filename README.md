@@ -160,41 +160,84 @@ graph TB
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- Python 3.8+
-- PostgreSQL with PostGIS extension
-- Redis
-- Kafka or RabbitMQ
+
+Before you begin, ensure you have the following installed:
+- **Node.js 16+** (LTS recommended)
+- **Python 3.8+**
+- **PostgreSQL 13+** (or NeonDB account)
+- **Git**
+- **OSM Data** (Chennai region recommended)
+- **OSRM Backend** (v5.24.0+ recommended)
 
 ### Installation
 
 1. Clone the repository:
-```bash
-git clone https://github.com/your-org/safeguard-navigators.git
-cd safeguardnavigators
-```
+   ```bash
+   git clone https://github.com/safeguard-navigators/safeguard-navigators.git
+   cd safeguard-navigators
+   ```
 
 2. Install frontend dependencies:
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
-3. Install backend dependencies:
-```bash
-cd backend
-pip install -r requirements.txt
-```
+3. Set up the backend:
+   ```bash
+   cd backend
+   python -m venv .venv
+   .venv\Scripts\activate  # On Windows
+   # source .venv/bin/activate  # On macOS/Linux
+   pip install -e .
+   cd ..
+   ```
 
-4. Set up environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
+4. Configure environment variables:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your actual API keys and database URLs
+   ```
 
-5. Start the development server:
-```bash
-npm run dev
-```
+5. Set up the database:
+   ```bash
+   npm run setup-db
+   ```
+
+6. Download OSM data:
+   - Visit https://download.geofabrik.de/asia/india.html
+   - Download Chennai region data
+   - Place `chennai-latest.osm.pbf` in the `backend` directory and rename to `chennai.osm.pbf`
+
+7. Install OSRM:
+   - Download from https://github.com/Project-OSRM/osrm-backend/releases
+   - Extract to `OSRM` directory in project root
+
+8. Start all services:
+   ```bash
+   start-all.bat  # On Windows
+   # ./start-all.sh  # On macOS/Linux
+   ```
+
+### Simplified Startup (No Auto Package Installation)
+
+The new startup scripts no longer automatically install packages or activate virtual environments:
+
+1. **Manual Setup Required**:
+   - Create and activate virtual environment manually
+   - Install dependencies manually with `pip install -e .`
+   - Ensure all environment variables are properly configured
+
+2. **Service Startup**:
+   - Services start in separate windows for easier monitoring
+   - Each service can be stopped independently
+   - Reduced complexity and fewer automatic operations
+
+### Running without Docker
+
+This project is configured to run without Docker by default. It uses:
+- NeonDB as the database (configured in `.env`)
+- Local OSRM installation for routing
+- Local development servers for frontend and backend
 
 ### Available Scripts
 

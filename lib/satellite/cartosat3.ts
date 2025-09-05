@@ -51,52 +51,6 @@ export interface Cartosat3Response {
   error?: string;
 }
 
-interface Cartosat3ResponseItem {
-  id: string;
-  timestamp: string;
-  coordinates: {
-    northwest: {
-      lat: number;
-      lng: number;
-    };
-    southeast: {
-      lat: number;
-      lng: number;
-    };
-  };
-  resolution: number;
-  bands: {
-    panchromatic: string;
-    multispectral: string;
-  };
-  metadata: {
-    sunElevation: number;
-    sunAzimuth: number;
-    cloudCover: number;
-    offNadirAngle: number;
-    sceneId: string;
-  };
-  processing: {
-    atmosphericCorrection: boolean;
-    geometricCorrection: boolean;
-    radiometricCalibration: boolean;
-  };
-}
-
-interface ProcessedPanchromaticData {
-  sceneId: string;
-  timestamp: Date;
-  resolution: number;
-  averageBrightness: number;
-  brightnessDistribution: {
-    dark: number;
-    moderate: number;
-    bright: number;
-  };
-  lightingQuality: number;
-  confidence: number;
-}
-
 /**
  * Fetch CARTOSAT-3 satellite data for a bounding box
  * @param request Request parameters for satellite data
@@ -224,7 +178,7 @@ export async function fetchRealCartosat3Data(
     // Process response
     if (response.data && response.data.success) {
       // Transform response data to our Cartosat3Data format
-      const cartosat3Data: Cartosat3Data[] = response.data.data.map((item: Cartosat3ResponseItem) => ({
+      const cartosat3Data: Cartosat3Data[] = response.data.data.map((item: any) => ({
         id: item.id,
         timestamp: new Date(item.timestamp),
         coordinates: {
@@ -266,32 +220,29 @@ export async function fetchRealCartosat3Data(
         error: response.data.error || 'Failed to fetch CARTOSAT-3 data'
       };
     }
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('Error fetching real CARTOSAT-3 data:', error);
     
     // Handle different types of errors
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        // Server responded with error status
-        return {
-          success: false,
-          error: `Server error: ${error.response.status} - ${error.response.data?.error || 'Unknown error'}`
-        };
-      } else if (error.request) {
-        // Request was made but no response received
-        return {
-          success: false,
-          error: 'Network error: No response received from server'
-        };
-      }
+    if (error.response) {
+      // Server responded with error status
+      return {
+        success: false,
+        error: `Server error: ${error.response.status} - ${error.response.data?.error || 'Unknown error'}`
+      };
+    } else if (error.request) {
+      // Request was made but no response received
+      return {
+        success: false,
+        error: 'Network error: No response received from server'
+      };
+    } else {
+      // Something else happened
+      return {
+        success: false,
+        error: `Request error: ${error.message}`
+      };
     }
-    
-    // Something else happened
-    return {
-      success: false,
-      error: `Request error: ${(error as Error).message}`
-    };
-
   }
 }
 
@@ -335,7 +286,7 @@ function generateSceneId(): string {
  */
 export async function processPanchromaticData(
   data: Cartosat3Data
-): Promise<ProcessedPanchromaticData> {
+): Promise<any> {
   try {
     // In a real implementation, this would:
     // 1. Download the panchromatic band data
@@ -344,7 +295,7 @@ export async function processPanchromaticData(
     // 4. Extract brightness/illumination information
     
     // For this prototype, we'll simulate the processing
-    const processedData: ProcessedPanchromaticData = {
+    const processedData = {
       sceneId: data.id,
       timestamp: data.timestamp,
       resolution: data.resolution,

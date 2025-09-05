@@ -57,44 +57,6 @@ export interface EmergencyService {
   isActive: boolean;
 }
 
-// Additional interfaces for user data
-interface UserSelect {
-  id: boolean;
-  name: boolean;
-  email: boolean;
-  phone: boolean;
-  emergencyContacts?: boolean;
-  healthInfo?: boolean;
-}
-
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  emergencyContacts?: EmergencyContact[];
-  healthInfo?: any; // This should be properly typed based on your health info model
-}
-
-interface AlertData {
-  alertId: string;
-  alertType: string;
-  timestamp: Date;
-  location?: {
-    latitude: number;
-    longitude: number;
-    time: Date;
-  };
-  user?: {
-    id: string;
-    name: string;
-    phone: string;
-    email: string;
-  };
-  healthInfo?: any; // This should be properly typed based on your health info model
-  customMessage?: string;
-}
-
 // Emergency Alert Service
 class EmergencyAlertService {
   /**
@@ -207,9 +169,9 @@ class EmergencyAlertService {
       }
       
       // Get user data if needed
-      let user: UserData | null = null;
+      let user: any = null;
       if (options.includeUserProfile || options.includeHealthInfo) {
-        const userSelect: UserSelect = {
+        const userSelect: any = {
           id: true,
           name: true,
           email: true,
@@ -228,11 +190,11 @@ class EmergencyAlertService {
         user = await prisma.user.findUnique({
           where: { id: alert.userId },
           select: userSelect
-        }) as UserData | null;
+        });
       }
       
       // Prepare alert data
-      const alertData: AlertData = {
+      const alertData = {
         alertId: alert.id,
         alertType: alert.alertType,
         timestamp: alert.createdAt,
@@ -281,7 +243,7 @@ class EmergencyAlertService {
    */
   private async notifyEmergencyContacts(
     userId: string,
-    alertData: AlertData
+    alertData: any
   ): Promise<string[]> {
     try {
       // Get user's emergency contacts
@@ -320,7 +282,7 @@ class EmergencyAlertService {
   /**
    * Notify appropriate authorities
    */
-  private async notifyAuthorities(userId: string, alertData: AlertData): Promise<boolean> {
+  private async notifyAuthorities(userId: string, alertData: any): Promise<boolean> {
     try {
       // Get user's location
       if (!alertData.location) {
@@ -366,7 +328,7 @@ class EmergencyAlertService {
   /**
    * Send SMS alert to emergency contact
    */
-  private async sendSmsAlert(phone: string, alertData: AlertData): Promise<boolean> {
+  private async sendSmsAlert(phone: string, alertData: any): Promise<boolean> {
     try {
       // In a real implementation, this would use an SMS service like Twilio
       console.log(`Sending emergency SMS to ${phone}`);
@@ -386,7 +348,7 @@ class EmergencyAlertService {
   /**
    * Initiate emergency call to contact
    */
-  private async initiateEmergencyCall(phone: string, alertData: AlertData): Promise<boolean> {
+  private async initiateEmergencyCall(phone: string, alertData: any): Promise<boolean> {
     try {
       // In a real implementation, this would use a voice calling API
       // like Twilio or an automated calling system
@@ -407,7 +369,7 @@ class EmergencyAlertService {
   /**
    * Send email alert to emergency contact
    */
-  private async sendEmailAlert(email: string, alertData: AlertData): Promise<boolean> {
+  private async sendEmailAlert(email: string, alertData: any): Promise<boolean> {
     try {
       // In a real implementation, this would use an email service
       console.log(`Sending emergency email to ${email}`);
@@ -430,7 +392,7 @@ class EmergencyAlertService {
    * Format alert message for different communication channels
    */
   private formatAlertMessage(
-    alertData: AlertData,
+    alertData: any,
     isVoice: boolean = false,
     isEmail: boolean = false
   ): string {
@@ -440,28 +402,45 @@ class EmergencyAlertService {
     // Get alert type text
     const alertTypeText = this.getAlertTypeText(alertData.alertType);
     
-    // Format time
-    const timeString = alertData.timestamp.toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
+    // Format timestamp
+    const timeText = new Date(alertData.timestamp).toLocaleString();
     
-    // Format location if available
-    let locationString = '';
+    // Base message
+    let message = `EMERGENCY ALERT: ${userName} has triggered a ${alertTypeText} alert at ${timeText}.`;
+    
+    // Add custom message if available
+    if (alertData.customMessage) {
+      message += ` Message: "${alertData.customMessage}"`;
+    }
+    
+    // Add location if available
     if (alertData.location) {
-      locationString = ` at coordinates ${alertData.location.latitude.toFixed(6)}, ${alertData.location.longitude.toFixed(6)}`;
+      const locationUrl = `https://maps.google.com/?q=${alertData.location.latitude},${alertData.location.longitude}`;
+      
+      if (isVoice) {
+        message += ` They are located at latitude ${alertData.location.latitude.toFixed(6)} and longitude ${alertData.location.longitude.toFixed(6)}.`;
+      } else if (isEmail) {
+        message += ` They are located at: ${locationUrl}`;
+      } else {
+        message += ` Location: ${locationUrl}`;
+      }
     }
     
-    // Format message based on channel
-    if (isVoice) {
-      return `Emergency Alert for ${userName}. ${alertTypeText}${locationString}. Time: ${timeString}. This is an automated message from SafeRoute.`;
-    } else if (isEmail) {
-      return `Emergency Alert\n\nUser: ${userName}\nType: ${alertTypeText}\nTime: ${timeString}\nLocation: ${locationString || 'Not shared'}\n\nThis is an automated message from SafeRoute.`;
-    } else {
-      // SMS format
-      return `EMERGENCY: ${alertTypeText} for ${userName}${locationString}. Time: ${timeString}. Check app for details.`;
+    // Add health info if available
+    if (alertData.healthInfo) {
+      message += ` Health information: ${alertData.healthInfo.bloodType || ''} ${alertData.healthInfo.allergies || ''} ${alertData.healthInfo.medications || ''} ${alertData.healthInfo.conditions || ''}`;
     }
+    
+    // Add contact instructions
+    if (isVoice) {
+      message += ` This is an automated emergency alert. Please respond immediately.`;
+    } else if (isEmail) {
+      message += `\n\nThis is an automated emergency alert from SafeRoute. Please respond immediately.\n\nDO NOT REPLY TO THIS EMAIL - contact the user directly or emergency services.`;
+    } else {
+      message += ` Please respond immediately.`;
+    }
+    
+    return message;
   }
 
   /**

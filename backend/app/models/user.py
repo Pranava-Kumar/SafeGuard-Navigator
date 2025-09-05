@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Boolean, DateTime, Integer, Enum
 from sqlalchemy.orm import relationship
 from app.db.session import Base
 from datetime import datetime
-from app.models.models import UserType, Language, TimePreference  # Import enums from models.py
+from app.models.models import UserType, Language, TimePreference, UserRole  # Import enums from models.py
 
 
 # User model that matches the actual database schema
@@ -51,13 +51,13 @@ class User(Base):
     time_preference = Column(Enum(TimePreference), default=TimePreference.SAFETY_FIRST)
     
     # Additional fields from the schema
-    role = Column(String, default="user")
+    role = Column(Enum(UserRole), default=UserRole.USER)
     subscription_plan = Column(String, default="free")
     subscription_status = Column(String, default="active")
     location_sharing_level = Column(String, default="coarse")
     crowdsourcing_participation = Column(Boolean, default=True)
     personalized_recommendations = Column(Boolean, default=True)
-    analytics_concent = Column(Boolean, default=False)
+    analytics_consent = Column(Boolean, default=False)
     marketing_concent = Column(Boolean, default=False)
     last_login_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

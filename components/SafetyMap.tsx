@@ -16,6 +16,7 @@ import { Slider } from '@/components/ui/slider';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { MyLocation, Navigation, Report, Warning } from 'lucide-react';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Fix Leaflet icon issues in Next.js
 const DefaultIcon = L.icon({
@@ -282,6 +283,26 @@ const SafetyMap: React.FC<SafetyMapProps> = ({
   showIncidents = true,
   showSafetyZones = true
 }) => {
+  return (
+    <ErrorBoundary>
+      <SafetyMapContent 
+        initialPosition={initialPosition}
+        initialZoom={initialZoom}
+        showSafetyHeatmap={showSafetyHeatmap}
+        showIncidents={showIncidents}
+        showSafetyZones={showSafetyZones}
+      />
+    </ErrorBoundary>
+  );
+};
+
+const SafetyMapContent: React.FC<SafetyMapProps> = ({
+  initialPosition = [28.6139, 77.2090], // Default to Delhi, India
+  initialZoom = 13,
+  showSafetyHeatmap = true,
+  showIncidents = true,
+  showSafetyZones = true
+}) => {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [destination, setDestination] = useState<[number, number] | null>(null);
   const [route, setRoute] = useState<Route | null>(null);
@@ -314,6 +335,10 @@ const SafetyMap: React.FC<SafetyMapProps> = ({
         console.error('Error fetching safety data:', err);
         if (err instanceof Error) {
           setError(err.message);
+        } else if (typeof err === 'string') {
+          setError(err);
+        } else {
+          setError('An unknown error occurred while fetching safety data');
         }
         setIsLoading(false);
       }
@@ -334,6 +359,13 @@ const SafetyMap: React.FC<SafetyMapProps> = ({
         setIncidents(data.incidents || []);
       } catch (err: unknown) {
         console.error('Error fetching incidents:', err);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else if (typeof err === 'string') {
+          setError(err);
+        } else {
+          setError('An unknown error occurred while fetching incidents');
+        }
       }
     };
     
@@ -354,6 +386,13 @@ const SafetyMap: React.FC<SafetyMapProps> = ({
         setSafetyZones(data.zones || []);
       } catch (err: unknown) {
         console.error('Error fetching safety zones:', err);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else if (typeof err === 'string') {
+          setError(err);
+        } else {
+          setError('An unknown error occurred while fetching safety zones');
+        }
       }
     };
     
@@ -408,6 +447,10 @@ const SafetyMap: React.FC<SafetyMapProps> = ({
         console.error('Error calculating route:', err);
         if (err instanceof Error) {
           setError(err.message);
+        } else if (typeof err === 'string') {
+          setError(err);
+        } else {
+          setError('An unknown error occurred while calculating route');
         }
         setIsLoading(false);
       }
@@ -458,8 +501,12 @@ const SafetyMap: React.FC<SafetyMapProps> = ({
       console.error('Error sending emergency alert:', err);
       if (err instanceof Error) {
         setError(err.message);
+      } else if (typeof err === 'string') {
+        setError(err);
+      } else {
+        setError('An unknown error occurred while sending emergency alert');
       }
-    }
+          
   };
   
   // Handle report incident button click

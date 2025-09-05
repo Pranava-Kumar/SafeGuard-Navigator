@@ -34,6 +34,9 @@ dependencies = [
     # OSRM integration
     "osrmcpy>=0.1.0",
     "Pillow>=10.5.0",
+    
+    # Email validation
+    "email-validator>=2.2.0",
 ]
 
 [project.optional-dependencies]

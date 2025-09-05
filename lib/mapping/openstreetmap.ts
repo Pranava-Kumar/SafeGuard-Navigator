@@ -110,41 +110,6 @@ export interface OSMResponse<T> {
   error?: string;
 }
 
-interface NominatimResult {
-  place_id: string;
-  osm_id: string;
-  osm_type: string;
-  display_name: string;
-  namedetails?: {
-    name: string;
-  };
-  address: any; // This should be properly typed but for now we'll keep it as any
-  lat: string;
-  lon: string;
-  boundingbox?: string[];
-  importance?: number;
-  type: string;
-  category?: string;
-  class?: string;
-}
-
-interface NominatimAddress {
-  house_number?: string;
-  road?: string;
-  pedestrian?: string;
-  footway?: string;
-  neighbourhood?: string;
-  suburb?: string;
-  city?: string;
-  town?: string;
-  village?: string;
-  county?: string;
-  state?: string;
-  postcode?: string;
-  country?: string;
-  country_code?: string;
-}
-
 /**
  * Geocode an address using OpenStreetMap Nominatim
  * @param request Geocoding request parameters
@@ -204,7 +169,7 @@ export async function geocodeAddress(
     const results = await response.json();
 
     // Transform Nominatim results to OSMPlace objects
-    const places: OSMPlace[] = results.map((result: NominatimResult) => ({
+    const places: OSMPlace[] = results.map((result: any) => ({
       placeId: result.place_id,
       osmId: result.osm_id,
       osmType: result.osm_type,
@@ -245,7 +210,7 @@ export async function geocodeAddress(
  * @param address Nominatim address object
  * @returns Parsed OSMAddress
  */
-function parseOSMAddress(address: NominatimAddress): OSMAddress {
+function parseOSMAddress(address: any): OSMAddress {
   return {
     houseNumber: address.house_number,
     road: address.road || address.pedestrian || address.footway,
@@ -696,33 +661,32 @@ export async function getSafetyInfrastructure(
         out skel qt;`
     };
 
-    // Execute all queries concurrently
+    // Execute all queries concurrently with proper error handling
+    const fetchQuery = async (query: string) => {
+      const response = await fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `data=${encodeURIComponent(query)}`
+      });
+      
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        return await response.json();
+      } else {
+        // Handle non-JSON responses (likely error messages)
+        const text = await response.text();
+        console.error('Non-JSON response from Overpass API:', text);
+        return { elements: [] }; // Return empty elements array to prevent errors
+      }
+    };
+
     const results = await Promise.all([
-      fetch('https://overpass-api.de/api/interpreter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `data=${encodeURIComponent(queries.police)}`
-      }).then((res) => res.json()),
-      fetch('https://overpass-api.de/api/interpreter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `data=${encodeURIComponent(queries.hospitals)}`
-      }).then((res) => res.json()),
-      fetch('https://overpass-api.de/api/interpreter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `data=${encodeURIComponent(queries.fire)}`
-      }).then((res) => res.json()),
-      fetch('https://overpass-api.de/api/interpreter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `data=${encodeURIComponent(queries.lights)}`
-      }).then((res) => res.json()),
-      fetch('https://overpass-api.de/api/interpreter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `data=${encodeURIComponent(queries.cctv)}`
-      }).then((res) => res.json())
+      fetchQuery(queries.police),
+      fetchQuery(queries.hospitals),
+      fetchQuery(queries.fire),
+      fetchQuery(queries.lights),
+      fetchQuery(queries.cctv)
     ]);
 
     // Transform results to OSMPlace objects

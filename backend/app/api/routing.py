@@ -4,17 +4,18 @@ from app.db.utils import get_db
 from app.schemas import RouteRequest, RouteResponse
 from app.services.route_optimizer import RouteOptimizer
 from app.models import Route as DBRoute
+import json
 
 router = APIRouter()
 optimizer = RouteOptimizer()
 
 
 @router.post("/calculate", response_model=RouteResponse)
-def calculate_route(request: RouteRequest, db: Session = Depends(get_db)):
+async def calculate_route(request: RouteRequest, db: Session = Depends(get_db)):
     """Calculate the optimal route based on safety and time preferences."""
     try:
         # Calculate the route
-        result = optimizer.calculate_route(request)
+        result = await optimizer.calculate_route(request)
         
         # Save to database
         db_route = DBRoute(
@@ -25,12 +26,12 @@ def calculate_route(request: RouteRequest, db: Session = Depends(get_db)):
             distance_meters=result.routes[0].distance_meters,
             duration_seconds=result.routes[0].duration_seconds,
             overall_safety_score=result.routes[0].safety_score,
-            context={
+            context=json.dumps({
                 "user_type": request.user_type,
                 "safety_preference": request.safety_preference,
                 "time_of_day": request.time_of_day,
                 "weather_condition": request.weather_condition
-            }
+            })
         )
         
         db.add(db_route)
@@ -61,7 +62,7 @@ def get_route(route_id: str, db: Session = Depends(get_db)):
     # In a real implementation, we would reconstruct the full route details
     response = RouteResponse(
         routes=[{
-            "id": db_route.id,
+            "id": str(db_route.id),
             "start": {"latitude": db_route.start_latitude, "longitude": db_route.start_longitude},
             "end": {"latitude": db_route.end_latitude, "longitude": db_route.end_longitude},
             "distance_meters": db_route.distance_meters,

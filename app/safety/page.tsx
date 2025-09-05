@@ -1,381 +1,435 @@
-/**
- * Safety Hub Page
- * Central hub for all safety features including safety tips, resources, and map
- * Compliant with DPDP Act 2023
- */
+"use client";
 
-'use client';
-
-import React from 'react';
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { 
-  Box, 
-  Typography, 
-  Container, 
-  Paper, 
-  Divider,
-  Button,
-  Grid,
-  Card,
-  CardContent,
-  CardMedia,
-  CardActionArea,
-  Alert,
-  AlertTitle,
-} from '@mui/material';
-import { 
-  Warning, 
-  Healing,
+  AlertTriangle, 
+  Heart,
   Home,
-  MedicalServices,
+  Hospital,
   Backpack,
-  People,
-  ArrowForward,
-  LocalHospital,
-  Map as MapIcon,
-  Notifications,
+  Users,
+  ArrowRight,
+  MapPin,
+  Bell,
   Phone,
-  ContactPhone,
+  Contact,
   Info,
   Lightbulb,
-  Security,
-  DirectionsCar,
-  LocationOn,
   Shield,
-} from '@mui/icons-material';
-import Link from 'next/link';
+  Car,
+  Locate,
+  BookOpen,
+  Star,
+  CheckCircle,
+  AlertCircle,
+  Search,
+  Filter,
+  ChevronDown
+} from "lucide-react";
+import Link from "next/link";
 
-// Interface for feature card
 interface FeatureCard {
   id: string;
   title: string;
   description: string;
   icon: React.ReactNode;
-  imageUrl?: string;
   link: string;
   featured?: boolean;
   color?: string;
 }
 
-// Safety features
-const safetyFeatures: FeatureCard[] = [
-  {
-    id: 'safety-tips',
-    title: 'Safety Tips',
-    description: 'Browse through a collection of safety tips for various situations.',
-    icon: <Lightbulb fontSize="large" />,
-    imageUrl: '/images/safety-tips.jpg',
-    link: '/safety/tips',
-    featured: true,
-    color: '#ff9800', // orange
-  },
-  {
-    id: 'safety-resources',
-    title: 'Safety Resources',
-    description: 'Access essential safety resources including emergency kit checklist, family plan, and first aid basics.',
-    icon: <Backpack fontSize="large" />,
-    imageUrl: '/images/safety-resources.jpg',
-    link: '/safety/resources',
-    featured: true,
-    color: '#2196f3', // blue
-  },
-  {
-    id: 'safety-map',
-    title: 'Safety Map',
-    description: 'View a map of emergency services, safe zones, and hazards in your area.',
-    icon: <MapIcon fontSize="large" />,
-    imageUrl: '/images/safety-map.jpg',
-    link: '/safety/map',
-    featured: true,
-    color: '#4caf50', // green
-  },
-  {
-    id: 'emergency-hub',
-    title: 'Emergency Hub',
-    description: 'Access emergency services, alerts, and contacts in one place.',
-    icon: <LocalHospital fontSize="large" />,
-    imageUrl: '/images/emergency-hub.jpg',
-    link: '/emergency',
-    color: '#f44336', // red
-  },
-  {
-    id: 'safe-routes',
-    title: 'Safe Routes',
-    description: 'Plan your journey with safety as the priority.',
-    icon: <DirectionsCar fontSize="large" />,
-    imageUrl: '/images/safe-routes.jpg',
-    link: '/routes',
-    color: '#9c27b0', // purple
-  },
-  {
-    id: 'safety-score',
-    title: 'Safety Score',
-    description: 'Check the safety score of different areas and routes.',
-    icon: <Shield fontSize="large" />,
-    imageUrl: '/images/safety-score.jpg',
-    link: '/safety/score',
-    color: '#3f51b5', // indigo
-  },
-];
-
 export default function SafetyPage() {
+  const [activeTip, setActiveTip] = useState(0);
+
+  // Safety features
+  const safetyFeatures: FeatureCard[] = [
+    {
+      id: 'safety-tips',
+      title: 'Safety Tips',
+      description: 'Browse through a collection of safety tips for various situations.',
+      icon: <Lightbulb className="h-8 w-8" />,
+      link: '/safety/tips',
+      featured: true,
+    },
+    {
+      id: 'safety-resources',
+      title: 'Safety Resources',
+      description: 'Access essential safety resources including emergency kit checklist, family plan, and first aid basics.',
+      icon: <Backpack className="h-8 w-8" />,
+      link: '/safety/resources',
+      featured: true,
+    },
+    {
+      id: 'safety-map',
+      title: 'Safety Map',
+      description: 'View a map of emergency services, safe zones, and hazards in your area.',
+      icon: <MapPin className="h-8 w-8" />,
+      link: '/safety/map',
+      featured: true,
+    },
+    {
+      id: 'emergency-hub',
+      title: 'Emergency Hub',
+      description: 'Access emergency services, alerts, and contacts in one place.',
+      icon: <Hospital className="h-8 w-8" />,
+      link: '/emergency',
+    },
+    {
+      id: 'safe-routes',
+      title: 'Safe Routes',
+      description: 'Plan your journey with safety as the priority.',
+      icon: <Car className="h-8 w-8" />,
+      link: '/routes',
+    },
+    {
+      id: 'safety-score',
+      title: 'Safety Score',
+      description: 'Check the safety score of different areas and routes.',
+      icon: <Shield className="h-8 w-8" />,
+      link: '/safety/score',
+    },
+  ];
+
   // Get featured features
   const featuredFeatures = safetyFeatures.filter(feature => feature.featured);
   
   // Get other features
   const otherFeatures = safetyFeatures.filter(feature => !feature.featured);
-  
+
+  // Safety tips for rotation
+  const safetyTips = [
+    {
+      title: "Stay Aware of Your Surroundings",
+      content: "Always be conscious of your environment, especially in unfamiliar areas. Trust your instincts if something feels wrong."
+    },
+    {
+      title: "Share Your Location",
+      content: "Let someone know your plans and expected return time. Use location sharing apps when traveling alone."
+    },
+    {
+      title: "Emergency Contacts",
+      content: "Keep a list of emergency contacts easily accessible on your phone and in your wallet or bag."
+    },
+    {
+      title: "Well-Lit Paths",
+      content: "When walking at night, stick to well-lit areas and avoid shortcuts through dark alleys or parking lots."
+    }
+  ];
+
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Safety Hub
-        </Typography>
-        
-        <Typography variant="body1" gutterBottom>
-          Welcome to the Safety Hub, your central resource for safety information, emergency preparedness, and safety-focused navigation.
-        </Typography>
-      </Box>
-      
-      {/* Emergency Reminder */}
-      <Paper 
-        sx={{ 
-          p: 3, 
-          mb: 4, 
-          bgcolor: 'error.light', 
-          color: 'error.contrastText',
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Warning sx={{ mr: 2, fontSize: 40 }} />
-          <Box>
-            <Typography variant="h5" gutterBottom>
-              Emergency Helpline: <strong>112</strong>
-            </Typography>
-            <Typography variant="body1">
-              In case of immediate danger or emergency, call the national emergency number.
-            </Typography>
-          </Box>
-        </Box>
-      </Paper>
-      
-      {/* Featured Features */}
-      <Box sx={{ mb: 6 }}>
-        <Typography variant="h5" gutterBottom>
-          Featured Safety Resources
-        </Typography>
-        
-        <Grid container spacing={3}>
-          {featuredFeatures.map((feature) => (
-            <Grid size={{ xs:12, md:4 }} key={feature.id}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <CardActionArea 
-                  component={Link} 
-                  href={feature.link}
-                  sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
-                >
-                  {feature.imageUrl ? (
-                    <CardMedia
-                      component="img"
-                      height="140"
-                      image={feature.imageUrl}
-                      alt={feature.title}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-8">
+            <h1 className="text-3xl font-bold text-gray-900">Safety Hub</h1>
+            <p className="mt-2 text-gray-600">
+              Your central resource for safety information, emergency preparedness, and safety-focused navigation.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Emergency Reminder */}
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <AlertTriangle className="h-10 w-10 text-red-600 mr-4 flex-shrink-0" />
+            <div>
+              <h2 className="text-xl font-semibold text-red-800 mb-2">
+                Emergency Helpline: <strong>112</strong>
+              </h2>
+              <p className="text-red-700">
+                In case of immediate danger or emergency, call the national emergency number.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0 md:ml-auto">
+              <Button asChild variant="destructive">
+                <a href="tel:112">
+                  <Phone className="h-4 w-4 mr-2" />
+                  Call 112
+                </a>
+              </Button>
+              <Button asChild variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
+                <a href="sms:112">
+                  <Contact className="h-4 w-4 mr-2" />
+                  Text 112
+                </a>
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Featured Features */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Featured Safety Resources</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {featuredFeatures.map((feature) => (
+              <Card key={feature.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-4">
+                    <div className="text-blue-600">
+                      {feature.icon}
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 text-sm mb-4">
+                    {feature.description}
+                  </p>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href={feature.link}>
+                      Explore
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Safety Tip Rotation */}
+        <div className="mb-12">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Lightbulb className="h-5 w-5 mr-2 text-yellow-500" />
+                Safety Tip of the Day
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {safetyTips[activeTip].title}
+                </h3>
+                <p className="text-gray-600">
+                  {safetyTips[activeTip].content}
+                </p>
+                <div className="flex justify-center mt-6 space-x-2">
+                  {safetyTips.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setActiveTip(index)}
+                      className={`w-3 h-3 rounded-full ${
+                        index === activeTip ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
+                      aria-label={`View tip ${index + 1}`}
                     />
-                  ) : (
-                    <Box sx={{ height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: feature.color || 'primary.light' }}>
-                      <Box sx={{ color: 'white' }}>{feature.icon}</Box>
-                    </Box>
-                  )}
-                  
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <Box sx={{ mr: 1, color: feature.color || 'primary.main' }}>
-                        {feature.icon}
-                      </Box>
-                      <Typography variant="h6" component="h2">
-                        {feature.title}
-                      </Typography>
-                    </Box>
-                    
-                    <Typography variant="body2" color="text.secondary">
-                      {feature.description}
-                    </Typography>
-                  </CardContent>
-                </CardActionArea>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Other Features */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">More Safety Features</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {otherFeatures.map((feature) => (
+              <Card key={feature.id} className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-100 mb-3">
+                    <div className="text-green-600">
+                      {feature.icon}
+                    </div>
+                  </div>
+                  <CardTitle className="text-md">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 text-sm mb-4">
+                    {feature.description}
+                  </p>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={feature.link}>
+                      Learn More
+                    </Link>
+                  </Button>
+                </CardContent>
               </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
-      
-      {/* Other Features */}
-      <Box sx={{ mb: 6 }}>
-        <Typography variant="h5" gutterBottom>
-          More Safety Features
-        </Typography>
-        
-        <Grid container spacing={3}>
-          {otherFeatures.map((feature) => (
-            <Grid size={{ xs:12, sm:6, md:3 }} key={feature.id}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <CardActionArea 
-                  component={Link} 
-                  href={feature.link}
-                  sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
-                >
-                  <Box sx={{ height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: feature.color || 'primary.light' }}>
-                    <Box sx={{ color: 'white' }}>{feature.icon}</Box>
-                  </Box>
-                  
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography variant="h6" component="h2" gutterBottom>
-                      {feature.title}
-                    </Typography>
-                    
-                    <Typography variant="body2" color="text.secondary">
-                      {feature.description}
-                    </Typography>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
-      
-      {/* Safety Overview */}
-      <Box sx={{ mb: 6 }}>
-        <Typography variant="h5" gutterBottom>
-          Your Safety Matters
-        </Typography>
-        
-        <Grid container spacing={3}>
-          <Grid size={{ xs:12, md:6 }}>
-            <Paper sx={{ p: 3, height: '100%' }}>
-              <Typography variant="h6" gutterBottom>
-                Why Safety Preparedness is Important
-              </Typography>
-              
-              <Typography variant="body2" paragraph>
-                Being prepared for emergencies can make a significant difference in ensuring your safety and the safety of your loved ones. SafeGuard Navigators provides you with the tools and resources you need to:
-              </Typography>
-              
-              <ul>
-                <li>Stay informed about potential hazards in your area</li>
-                <li>Create and maintain emergency preparedness plans</li>
-                <li>Navigate safely through unfamiliar areas</li>
-                <li>Quickly access emergency services when needed</li>
-                <li>Share your location with trusted contacts during emergencies</li>
-                <li>Learn essential safety skills and knowledge</li>
-              </ul>
-              
-              <Button 
-                variant="contained" 
-                component={Link}
-                href="/safety/resources"
-                endIcon={<ArrowForward />}
-                sx={{ mt: 2 }}
-              >
-                Explore Safety Resources
+            ))}
+          </div>
+        </div>
+
+        {/* Safety Overview */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Safety Matters</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Why Safety Preparedness is Important</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">
+                  Being prepared for emergencies can make a significant difference in ensuring your safety and the safety of your loved ones. SafeRoute provides you with the tools and resources you need to:
+                </p>
+                <ul className="space-y-2 text-gray-600">
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Stay informed about potential hazards in your area</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Create and maintain emergency preparedness plans</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Navigate safely through unfamiliar areas</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Quickly access emergency services when needed</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Share your location with trusted contacts during emergencies</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Learn essential safety skills and knowledge</span>
+                  </li>
+                </ul>
+                <Button asChild className="w-full mt-6">
+                  <Link href="/safety/resources">
+                    Explore Safety Resources
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>How SafeRoute Helps You Stay Safe</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">
+                  Our platform is designed with your safety in mind, offering features that help you:
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-start">
+                    <Locate className="h-5 w-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-gray-900">Safe Navigation</h4>
+                      <p className="text-sm text-gray-600">
+                        Plan routes that prioritize your safety based on real-time data and community reports.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <Bell className="h-5 w-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-gray-900">Emergency Alerts</h4>
+                      <p className="text-sm text-gray-600">
+                        Send your location and status to emergency contacts with a single tap.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <MapPin className="h-5 w-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-gray-900">Safety Map</h4>
+                      <p className="text-sm text-gray-600">
+                        Visualize emergency services, safe zones, and potential hazards in your area.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <Lightbulb className="h-5 w-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-gray-900">Safety Knowledge</h4>
+                      <p className="text-sm text-gray-600">
+                        Access a comprehensive library of safety tips and resources.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <Button asChild className="w-full mt-6" variant="outline">
+                  <Link href="/routes">
+                    Try Safe Navigation
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Safety Statistics */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Community Safety Impact</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
+                  <Shield className="h-6 w-6 text-green-600" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">87%</p>
+                <p className="text-sm text-gray-600">Safer Routes</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">12.5K</p>
+                <p className="text-sm text-gray-600">Active Users</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-3">
+                  <Heart className="h-6 w-6 text-purple-600" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">245</p>
+                <p className="text-sm text-gray-600">Lives Impacted</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6 text-center">
+                <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-3">
+                  <Star className="h-6 w-6 text-yellow-600" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900">4.8</p>
+                <p className="text-sm text-gray-600">User Rating</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Call to Action */}
+        <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+          <CardContent className="p-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+              <div className="mb-6 md:mb-0">
+                <h3 className="text-2xl font-bold mb-2">Start Your Safety Journey Today</h3>
+                <p className="text-blue-100 max-w-2xl">
+                  Explore our safety resources, create your emergency plan, and learn how to navigate safely. Your safety is our priority.
+                </p>
+              </div>
+              <Button asChild variant="secondary" size="lg">
+                <Link href="/safety/tips">
+                  Explore Safety Tips
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
               </Button>
-            </Paper>
-          </Grid>
-          
-          <Grid size={{ xs:12, md:6 }}>
-            <Paper sx={{ p: 3, height: '100%' }}>
-              <Typography variant="h6" gutterBottom>
-                How SafeGuard Navigators Helps You Stay Safe
-              </Typography>
-              
-              <Typography variant="body2" paragraph>
-                Our platform is designed with your safety in mind, offering features that help you:
-              </Typography>
-              
-              <Grid container spacing={2}>
-                <Grid size={{ xs:12, sm:6 }}>
-                  <Box sx={{ display: 'flex', mb: 2 }}>
-                    <LocationOn sx={{ mr: 1, color: 'primary.main' }} />
-                    <Typography variant="body2">
-                      <strong>Safe Navigation</strong>: Plan routes that prioritize your safety based on real-time data and community reports.
-                    </Typography>
-                  </Box>
-                </Grid>
-                
-                <Grid size={{ xs:12, sm:6 }}>
-                  <Box sx={{ display: 'flex', mb: 2 }}>
-                    <Notifications sx={{ mr: 1, color: 'primary.main' }} />
-                    <Typography variant="body2">
-                      <strong>Emergency Alerts</strong>: Send your location and status to emergency contacts with a single tap.
-                    </Typography>
-                  </Box>
-                </Grid>
-                
-                <Grid size={{ xs:12, sm:6 }}>
-                  <Box sx={{ display: 'flex', mb: 2 }}>
-                    <MapIcon sx={{ mr: 1, color: 'primary.main' }} />
-                    <Typography variant="body2">
-                      <strong>Safety Map</strong>: Visualize emergency services, safe zones, and potential hazards in your area.
-                    </Typography>
-                  </Box>
-                </Grid>
-                
-                <Grid size={{ xs:12, sm:6 }}>
-                  <Box sx={{ display: 'flex', mb: 2 }}>
-                    <Lightbulb sx={{ mr: 1, color: 'primary.main' }} />
-                    <Typography variant="body2">
-                      <strong>Safety Knowledge</strong>: Access a comprehensive library of safety tips and resources.
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-              
-              <Button 
-                variant="contained" 
-                component={Link}
-                href="/routes"
-                endIcon={<ArrowForward />}
-                sx={{ mt: 2 }}
-              >
-                Try Safe Navigation
-              </Button>
-            </Paper>
-          </Grid>
-        </Grid>
-      </Box>
-      
-      {/* Call to Action */}
-      <Paper sx={{ p: 4, mb: 6, bgcolor: 'primary.light' }}>
-        <Grid container spacing={3} alignItems="center">
-          <Grid size={{ xs:12, md:8 }}>
-            <Typography variant="h5" gutterBottom>
-              Start Your Safety Journey Today
-            </Typography>
-            
-            <Typography variant="body1" paragraph>
-              Explore our safety resources, create your emergency plan, and learn how to navigate safely. Your safety is our priority.
-            </Typography>
-          </Grid>
-          
-          <Grid size={{ xs:12, md:4 }} sx={{ textAlign: 'center' }}>
-            <Button 
-              variant="contained" 
-              size="large"
-              component={Link}
-              href="/safety/tips"
-              endIcon={<ArrowForward />}
-            >
-              Explore Safety Tips
-            </Button>
-          </Grid>
-        </Grid>
-      </Paper>
-      
-      <Box sx={{ mt: 6, mb: 2 }}>
-        <Divider />
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
-          These safety resources are provided for informational purposes only and should not replace professional advice or training.
-          In case of emergency, always call the national emergency number: <strong>112</strong>.
-        </Typography>
-      </Box>
-    </Container>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Disclaimer */}
+        <div className="mt-12 pt-6 border-t border-gray-200">
+          <p className="text-center text-sm text-gray-500">
+            These safety resources are provided for informational purposes only and should not replace professional advice or training.
+            In case of emergency, always call the national emergency number: <strong className="text-red-600">112</strong>.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

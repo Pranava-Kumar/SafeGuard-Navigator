@@ -15,14 +15,16 @@ import {
   BarChart3,
   Eye,
   Share,
-  Download
+  Download,
+  Loader2
 } from "lucide-react";
-import SafetyScoreDisplay from "@/components/SafetyScoreCard";
+import SafetyScoreDisplay from "@/components/map/SafetyScoreDisplay";
 import EnhancedSafetyMap from "@/components/map/EnhancedSafetyMap";
 
 export default function RouteDetailsPage({ params }: { params: { id: string } }) {
   const [routeData, setRouteData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Mock route data for demonstration
   const mockRouteData = {
@@ -73,16 +75,43 @@ export default function RouteDetailsPage({ params }: { params: { id: string } })
 
   useEffect(() => {
     // Simulate fetching route data
-    setTimeout(() => {
-      setRouteData(mockRouteData);
-      setLoading(false);
-    }, 1000);
+    const fetchRouteData = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // In a real implementation, we would fetch from the API:
+        // const response = await fetch(`/api/routes/enhanced?routeId=${params.id}`);
+        
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // For now, we'll use mock data
+        setRouteData(mockRouteData);
+      } catch (err) {
+        console.error("Error fetching route data:", err);
+        setError("Failed to load route details. Using demo data.");
+        setRouteData(mockRouteData);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRouteData();
   }, [params.id]);
 
   const handleShareRoute = () => {
     // Implement share functionality
-    navigator.clipboard.writeText(window.location.href);
-    alert("Route link copied to clipboard!");
+    if (navigator.share) {
+      navigator.share({
+        title: "SafeRoute Journey",
+        text: `Check out this safe route from ${routeData.start.name} to ${routeData.end.name}`,
+        url: window.location.href
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Route link copied to clipboard!");
+    }
   };
 
   const handleDownloadRoute = () => {
@@ -99,6 +128,11 @@ export default function RouteDetailsPage({ params }: { params: { id: string } })
   const handleReportIssue = (location: [number, number]) => {
     // Navigate to incident reporting with the selected location
     window.location.href = `/emergency/alert/form?lat=${location[0]}&lng=${location[1]}`;
+  };
+
+  const handleUseRoute = (routeId: string) => {
+    // Navigate to the specific route details page
+    window.location.href = `/routes/${routeId}`;
   };
 
   const getSafetyColor = (score: number) => {
@@ -120,8 +154,23 @@ export default function RouteDetailsPage({ params }: { params: { id: string } })
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-center h-96">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <span className="ml-3 text-gray-600">Loading route details...</span>
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600 mr-2" />
+            <span className="text-gray-600">Loading route details...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
+              <span className="text-yellow-800">{error}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -250,7 +299,12 @@ export default function RouteDetailsPage({ params }: { params: { id: string } })
                           <div className="text-xs text-gray-500">{alt.duration}</div>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm" className="mt-2 w-full">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-2 w-full"
+                        onClick={() => handleUseRoute(alt.id)}
+                      >
                         <Navigation className="h-3 w-3 mr-1" />
                         Use This Route
                       </Button>

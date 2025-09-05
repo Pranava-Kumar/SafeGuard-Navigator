@@ -510,20 +510,12 @@ export function generateSafetyRecommendations(factors: SafetyFactors): string[] 
   return recommendations.slice(0, 5); // Limit to 5 recommendations
 }
 
-interface SafetyFactorDetail {
-  name: string;
-  score: number;
-  description: string;
-  level: string;
-  color: string;
-}
-
 /**
- * Get detailed information about each safety factor
- * @param factors Safety factors with scores
+ * Get detailed safety factor information for UI display
+ * @param factors Safety factors
  * @returns Detailed information about each factor
  */
-export function getSafetyFactorDetails(factors: SafetyFactors): SafetyFactorDetail[] {
+export function getSafetyFactorDetails(factors: SafetyFactors): any[] {
   return [
     {
       name: 'Lighting Quality',

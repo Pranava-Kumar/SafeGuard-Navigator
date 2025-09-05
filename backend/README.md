@@ -1,32 +1,76 @@
-# SafeRoute Backend Services
+# SafeRoute Backend Setup
 
-This directory contains all the backend microservices for the SafeRoute application.
+## Prerequisites
 
-## Services
+1. Python 3.8+
+2. PostgreSQL database (NeonDB recommended)
+3. OSRM routing engine
+4. Node.js (for frontend and database setup)
 
-1. **Auth Service** - User authentication and authorization
-2. **Data Ingest Service** - Ingestion of data from various sources
-3. **Safety Score Service** - Calculation of safety scores using multi-factor algorithm
-4. **Route Service** - Route calculation with safety optimization
-5. **Reputation Service** - User reputation management using Wilson Score
-6. **Prediction Service** - AI/ML predictions for safety incidents
+## Setup Instructions
 
-## Setup
+### 1. Create Virtual Environment
 
-1. Install dependencies using uv:
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+### 2. Install Dependencies
+
+```bash
+pip install -e .
+```
+
+Or using requirements.txt:
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Environment Variables
+
+Create a `.env` file in the backend directory with the following variables:
+
+```env
+DATABASE_URL=postgresql://username:password@host:port/database
+DIRECT_URL=postgresql://username:password@host:port/database
+OSRM_URL=http://localhost:5000
+NASA_API_KEY=your_nasa_api_key
+OPENWEATHER_API_KEY=your_openweather_api_key
+MAPPLS_API_KEY=your_mappls_api_key
+IMD_API_KEY=your_imd_api_key
+```
+
+### 4. Database Setup
+
+Run the database setup script from the project root:
+
+```bash
+npm run setup-db
+```
+
+### 5. Start Services
+
+1. Start OSRM service:
    ```bash
    cd backend
-   uv pip install -e .
+   setup-osrm.bat
    ```
 
-2. For development dependencies:
+2. Start backend server:
    ```bash
-   uv pip install -e .[dev]
+   cd backend
+   start-backend.bat
    ```
 
-3. Run services individually:
+3. Start frontend (from project root):
    ```bash
-   uvicorn app.main:app --reload
+   npm run dev
    ```
 
-Each service has its own directory with its specific implementation.
+Or use the start-all.bat script from the project root to start all services simultaneously.
+
+## API Documentation
+
+Once the backend is running, visit `http://localhost:8000/docs` for interactive API documentation.

@@ -76,51 +76,73 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Create a mock user for guest access
-  const mockUser: User = {
-    id: "guest-user-id",
-    email: "guest@example.com",
-    firstName: "Guest",
-    lastName: "User",
-    displayName: "Guest User",
-    userType: "pedestrian",
-    role: "user",
-    emailVerified: true,
-    language: "en",
-    country: "India",
-    subscriptionPlan: "free",
-    subscriptionStatus: "active",
-    dataProcessingConsent: true,
-    consentDate: new Date(),
-    consentVersion: "1.0",
-    locationSharingLevel: "city_only",
-    crowdsourcingParticipation: true,
-    personalizedRecommendations: true,
-    analyticsConsent: false,
-    marketingConsent: false,
-    riskTolerance: 50,
-    timePreference: "balanced",
-    createdAt: new Date(),
-    updatedAt: new Date()
-  };
-
-  const [user, setUser] = useState<User | null>(mockUser);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Initialize with mock user (no need to check auth)
+  // Check if user is already authenticated on initial load
   useEffect(() => {
-    setIsLoading(false);
+    const checkAuthStatus = async () => {
+      setIsLoading(true);
+      try {
+        // Check for existing session/token
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          // Validate token with backend
+          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+          const response = await fetch(`${backendUrl}/api/v1/auth/me`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.user) {
+              setUser(result.user);
+            }
+          } else {
+            // Invalid token, clear it
+            localStorage.removeItem('authToken');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+        localStorage.removeItem('authToken');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthStatus();
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Always succeed with mock user
-      setUser(mockUser);
-      return { success: true, message: "Login successful" };
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const response = await fetch(`${backendUrl}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.access_token) {
+        // Store token and user data
+        localStorage.setItem('authToken', data.access_token);
+        setUser(data.user);
+        return { success: true, message: "Login successful" };
+      } else {
+        return {
+          success: false,
+          message: data.detail || data.message || 'Login failed',
+          errors: data.errors
+        };
+      }
     } catch (error) {
       console.error('Login error:', error);
       return {
@@ -135,15 +157,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (data: RegisterData) => {
     try {
       setIsLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Always succeed with mock user
-      setUser(mockUser);
-      return {
-        success: true,
-        message: 'Registration successful'
-      };
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const response = await fetch(`${backendUrl}/api/v1/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      const responseData = await response.json();
+
+      if (response.ok && responseData.access_token) {
+        // Auto-login after successful registration
+        localStorage.setItem('authToken', responseData.access_token);
+        setUser(responseData.user);
+        return {
+          success: true,
+          message: 'Registration successful'
+        };
+      } else {
+        return {
+          success: false,
+          message: responseData.detail || responseData.message || 'Registration failed',
+          errors: responseData.errors
+        };
+      }
     } catch (error) {
       console.error('Registration error:', error);
       return {
@@ -158,22 +198,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       setIsLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Keep the mock user (no actual logout)
-      setUser(mockUser);
+      // Call backend logout endpoint
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        await fetch(`${backendUrl}/api/v1/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      }
+      
+      // Clear local storage and user state
+      localStorage.removeItem('authToken');
+      setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
-      // Still keep the mock user
-      setUser(mockUser);
+      // Still clear local state even if backend call fails
+      localStorage.removeItem('authToken');
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
   };
 
   const refreshUser = async () => {
-    // No need to refresh for mock user
+    try {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+        const response = await fetch(`${backendUrl}/api/v1/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.user) {
+            setUser(result.user);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+    }
   };
 
   const value = {
@@ -182,7 +253,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register,
     logout,
     isLoading,
-    isAuthenticated: true, // Always authenticated with mock user
+    isAuthenticated: !!user,
     refreshUser
   };
 

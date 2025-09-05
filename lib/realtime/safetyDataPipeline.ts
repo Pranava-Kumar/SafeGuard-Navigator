@@ -33,10 +33,11 @@ export interface SafetyDataEvent {
   eventType: string;
   severity: 'info' | 'warning' | 'alert' | 'emergency';
   location: LocationData;
-  timestamp: Date;
-  title: string;
+  radius?: number; // affected radius in meters
+  startTime: Date;
+  endTime?: Date;
   description: string;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, any>;
   isVerified: boolean;
 }
 
@@ -90,7 +91,7 @@ class SafetyDataPipeline {
         this.dataSources.set(source.id, {
           sourceId: source.id,
           name: source.name,
-          type: source.type as SafetyDataSource['type'], // Properly typed instead of 'any'
+          type: source.type as any,
           reliability: source.reliability,
           updateFrequency: source.updateFrequency,
           lastUpdated: source.lastUpdated,
@@ -387,10 +388,9 @@ class SafetyDataPipeline {
           } : undefined,
           radius: sub.radius ?? undefined,
           eventTypes: sub.eventTypes,
-          minSeverity: sub.minSeverity as 'info' | 'warning' | 'alert' | 'emergency',
-          notificationChannels: sub.notificationChannels as ('push' | 'email' | 'sms')[],
+          minSeverity: sub.minSeverity as any,
+          notificationChannels: sub.notificationChannels as any,
           isActive: sub.isActive
-
         }));
     } catch (error) {
       console.error(`Error finding matching subscriptions for event ${event.eventId}:`, error);
@@ -430,7 +430,7 @@ class SafetyDataPipeline {
           eventId: notification.eventId,
           title: notification.title,
           message: notification.message,
-          severity: notification.severity as 'info' | 'warning' | 'alert' | 'emergency',
+          severity: notification.severity as any,
           timestamp: notification.timestamp,
           isRead: notification.isRead,
           actionUrl: notification.actionUrl

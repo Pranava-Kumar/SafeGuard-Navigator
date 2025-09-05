@@ -199,8 +199,13 @@ const SafetyReporting: React.FC<SafetyReportingProps> = ({
       const data = await response.json();
       setNearbyReports(data.reports || []);
       setIsLoadingNearby(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching nearby reports:', err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred while fetching nearby reports');
+      }
       setIsLoadingNearby(false);
     }
   };
@@ -227,7 +232,13 @@ const SafetyReporting: React.FC<SafetyReportingProps> = ({
           } else {
             setAddressText(`${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`);
           }
-        } catch (err) {
+        } catch (err: unknown) {
+          console.error('Error getting address:', err);
+          if (err instanceof Error) {
+            setError(err.message);
+          } else {
+            setError('An unknown error occurred while getting address');
+          }
           setAddressText(`${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`);
         }
       };
@@ -247,7 +258,13 @@ const SafetyReporting: React.FC<SafetyReportingProps> = ({
             setShowConsentDialog(true);
           }
         }
-      } catch (err) {
+      } catch (err: unknown) {
+        console.error('Error checking consent:', err);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred while checking consent');
+        }
         // If error, show consent dialog to be safe
         setShowConsentDialog(true);
       }
@@ -300,7 +317,13 @@ const SafetyReporting: React.FC<SafetyReportingProps> = ({
       
       // Fetch nearby reports when location changes
       fetchNearbyReports(lat, lng);
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error('Error handling map click:', err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred while handling map click');
+      }
       setLocation({ latitude: lat, longitude: lng });
       setAddressText(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
       
@@ -386,9 +409,13 @@ const SafetyReporting: React.FC<SafetyReportingProps> = ({
           fetchNearbyReports(location.latitude, location.longitude);
         }
       }, 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error submitting report:', err);
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred while submitting report');
+      }
       setIsSubmitting(false);
     }
   };
@@ -410,9 +437,13 @@ const SafetyReporting: React.FC<SafetyReportingProps> = ({
       
       setConsentGiven(true);
       setShowConsentDialog(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error updating consent:', err);
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred while updating consent');
+      }
     }
   };
   

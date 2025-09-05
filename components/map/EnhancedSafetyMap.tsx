@@ -51,6 +51,11 @@ const Circle = dynamic(
   { ssr: false }
 );
 
+const Polyline = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Polyline),
+  { ssr: false }
+);
+
 interface SafetyScore {
   id: string;
   latitude: number;
@@ -58,6 +63,30 @@ interface SafetyScore {
   score: number;
   factors: string;
   timestamp: string;
+}
+
+interface RoutePoint {
+  latitude: number;
+  longitude: number;
+}
+
+interface RouteSegment {
+  start: RoutePoint;
+  end: RoutePoint;
+  safetyScore: number;
+  distance: number;
+  estimatedTime: number;
+}
+
+interface RouteOption {
+  id: string;
+  name: string;
+  type: "safest" | "fastest" | "balanced";
+  totalDistance: number;
+  totalTime: number;
+  safetyScore: number;
+  segments: RouteSegment[];
+  path: [number, number][];
 }
 
 interface SafetyFactors {
@@ -83,6 +112,9 @@ interface EnhancedSafetyMapProps {
   className?: string;
   enablePopups?: boolean;
   showSafetyCircles?: boolean;
+  routes?: RouteOption[]; // Add routes prop
+  selectedRoute?: string; // Add selected route prop
+  onRouteSelect?: (routeId: string) => void; // Add route select handler
 }
 
 export default function EnhancedSafetyMap({ 
@@ -93,7 +125,10 @@ export default function EnhancedSafetyMap({
   onReportIssue,
   className = "h-full w-full min-h-[400px]",
   enablePopups = true,
-  showSafetyCircles = true
+  showSafetyCircles = true,
+  routes = [], // Default empty routes array
+  selectedRoute = "", // Default no selected route
+  onRouteSelect // Optional route select handler
 }: EnhancedSafetyMapProps) {
   const [safetyData, setSafetyData] = useState<SafetyScore[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
@@ -277,6 +312,25 @@ export default function EnhancedSafetyMap({
     return 100 + (score / 100) * 400; // Radius between 100-500 meters
   };
 
+  // Helper function to get route color based on type
+  const getRouteColor = (type: string, isSelected: boolean) => {
+    if (isSelected) {
+      switch (type) {
+        case "safest": return "#10B981"; // green-500
+        case "fastest": return "#3B82F6"; // blue-500
+        case "balanced": return "#8B5CF6"; // violet-500
+        default: return "#6B7280"; // gray-500
+      }
+    } else {
+      switch (type) {
+        case "safest": return "#34D399"; // green-400
+        case "fastest": return "#60A5FA"; // blue-400
+        case "balanced": return "#A78BFA"; // violet-400
+        default: return "#9CA3AF"; // gray-400
+      }
+    }
+  };
+
   return (
   <div className={`${className} relative overflow-hidden rounded-lg`}>
     {mapLoaded ? (
@@ -294,6 +348,18 @@ export default function EnhancedSafetyMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        
+        {/* Render route polylines */}
+        {routes.map((route) => (
+          <Polyline
+            key={route.id}
+            positions={route.path}
+            color={getRouteColor(route.type, route.id === selectedRoute)}
+            weight={route.id === selectedRoute ? 6 : 4}
+            opacity={route.id === selectedRoute ? 0.8 : 0.6}
+            dashArray={route.type === "fastest" ? "10,10" : undefined}
+          />
+        ))}
         
         {/* Render safety data as circles on the map */}
         {showSafetyCircles && safetyData.map((point) => {

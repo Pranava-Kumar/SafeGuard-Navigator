@@ -64,44 +64,6 @@ export interface ReportingStats {
   userVerifiedReportCount?: number;
 }
 
-interface ReportQueryParams {
-  latitude: {
-    gte: number;
-    lte: number;
-  };
-  longitude: {
-    gte: number;
-    lte: number;
-  };
-  reportType?: {
-    in: string[];
-  };
-  severity?: {
-    in: string[];
-  };
-  createdAt?: {
-    gte?: Date;
-    lte?: Date;
-  };
-  status?: string;
-}
-
-interface ProcessedReport {
-  id: string;
-  reportType: string;
-  description: string;
-  severity: string;
-  latitude: number;
-  longitude: number;
-  timestamp: Date;
-  mediaUrls: string[];
-  isAnonymous: boolean;
-  reliabilityScore: number;
-  status: string;
-  verificationCount: number;
-  userId: string;
-}
-
 // Reporting Service
 class ReportingService {
   /**
@@ -278,7 +240,7 @@ class ReportingService {
   /**
    * Get reports based on location and filters
    */
-  async getReports(location: LocationData, filter: ReportFilter = {}): Promise<ProcessedReport[]> {
+  async getReports(location: LocationData, filter: ReportFilter = {}): Promise<any[]> {
     try {
       // Calculate bounding box for location query
       const boundingBox = this.calculateBoundingBox(
@@ -288,7 +250,7 @@ class ReportingService {
       );
       
       // Build query filters
-      const whereClause: ReportQueryParams = {
+      const whereClause: any = {
         latitude: { gte: boundingBox.minLat, lte: boundingBox.maxLat },
         longitude: { gte: boundingBox.minLng, lte: boundingBox.maxLng },
       };
@@ -322,7 +284,7 @@ class ReportingService {
       
       // Query reports
       const reports = await prisma.safetyReport.findMany({
-        where: whereClause as any, // We need to cast to any here because of Prisma's typing
+        where: whereClause,
         orderBy: [
           { createdAt: 'desc' }
         ]

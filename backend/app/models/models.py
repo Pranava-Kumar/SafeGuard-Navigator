@@ -14,6 +14,12 @@ class UserType(str, PyEnum):
     PUBLIC_TRANSPORT = "public_transport"
 
 
+class UserRole(str, PyEnum):
+    USER = "user"
+    ADMIN = "admin"
+    MODERATOR = "moderator"
+
+
 class TimePreference(str, PyEnum):
     SAFETY_FIRST = "safety_first"
     BALANCED = "balanced"
