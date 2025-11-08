@@ -37,20 +37,6 @@ SafeRoute addresses this critical gap by designing an intelligent navigation pla
 - AI/ML implementation
 - Geospatial systems
 
-### Muhilan M - UI/UX Designer & Frontend Developer
-- User interface design
-- Frontend development
-- User experience optimization
-
-### Sam Daniel J - Backend Developer & Data Engineer
-- Backend systems
-- Data pipelines
-- Infrastructure management
-
-### Mrs. Chinchu Nair - Mentor
-- Assistant Professor, Department of CSE
-- Technical guidance and mentorship
-
 ## 🛠️ Technology Stack
 
 ### Frontend
